@@ -1,21 +1,9 @@
 # Load Packages ================================================================
 library(tidyverse)
 library(stringr)
+library(readr)
 
 # Functions ====================================================================
-
-# Isolates the first number in a string
-isolate_number <- function(string) {
-  
-  nums = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
-  new_string = ""
-  
-  for (i in length(string)) {
-    if substr(string, i, i) in nums {
-      new_string <- new_string + substr(string, i, i)
-    }
-  }
-}
 
 # Read Data ====================================================================
 
@@ -27,4 +15,6 @@ broadpark_1 <- read_csv("data/broadpark_results_142")
 # Anonymise each runner
 
 anon_data <- broadpark_1 %>%
+  mutate(parkrunner_id = parse_number(parkrunner))
+
   
