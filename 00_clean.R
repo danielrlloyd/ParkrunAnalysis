@@ -12,7 +12,7 @@ library(readr)
 # List All Data Files ----------------------------------------------------------
 
 # Get a vector of all file paths in the "data" folder
-data_files <- list.files(path = "data", pattern = "\\.csv$", full.names = TRUE)
+data_files <- list.files(path = "data", full.names = TRUE)
 
 # Create Data Frame ------------------------------------------------------------
 
