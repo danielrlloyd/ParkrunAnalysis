@@ -33,9 +33,14 @@ for (file in data_files) {
   file_name <- basename(file)
   parkrun <- sub("_results_.*", "", file_name)
   
-  # Perform basic cleaning
+  # Isolate parkrun week
+  week <- parse_number(file_name)
+  
+  # Perform basic cleaning that is dependent on the file
   file_df <- file_df %>%
-    mutate(parkrun = parkrun)
+    mutate(parkrun = parkrun) %>%
+    mutate(week = week) %>%
+    group_by(parkrun, week)
   
   # Combines temporary data frame with global data frame
   parkrun_df <- bind_rows(parkrun_df, file_df)
