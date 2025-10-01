@@ -1,0 +1,20 @@
+---
+title: "Technical Report"
+author: "Daniel Lloyd"
+date: "2025-10-01"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+## Contributions
+
+# Methodology
+
+# Data Dictionary 
+
+# 
