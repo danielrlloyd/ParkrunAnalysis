@@ -9,12 +9,18 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Overview
+# Overview
 
-## Contributions
+# Contributions
+
+
 
 # Methodology
 
-# Data Dictionary 
+## Data Dictionary 
 
-# 
+## Raw Data to Clean Data
+
+## Limitations of the Dataset
+
+## Future Improvements and Development
