@@ -20,13 +20,13 @@ source("01_anonymise.R")
 parkrun_df_time <- parkrun_df_cleaned %>%
   filter(!is.na(Time)) %>%
   mutate(
-    Time_clean <- str_extract(Time, "\\d{1,2}:\\d{2}(?::\\d{2})?"),
-    Time_parsed = case_when(
-      str_count(Time_clean, ":") == 2 ~ hms(Time_clean),
-      str_count(Time_clean, ":") == 1 ~ ms(Time_clean),
-      TRUE ~ NA
+    Time_clean = str_extract(Time, "\\d{1,2}:\\d{2}(?::\\d{2})?"),
+    Time_parsed = ifelse(
+      str_count(Time_clean, ":") == 2,
+      as.numeric(hms(Time_clean)),
+      as.numeric(ms(Time_clean))
     ),
-    Time_seconds <- as.numeric(Time_parsed)
+    Time_seconds = as.numeric(Time_parsed)
   )
 
 # Model for regression
