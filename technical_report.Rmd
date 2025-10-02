@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Contributions
 
-Daniel Lloyd: Initial data cleaning (combining datasets, surface level cleaning), writing technical report
+Daniel Lloyd: Wrote the data dictionary, initial data cleaning (combining datasets, surface level cleaning), writing technical report
 
 # Methodology
 
