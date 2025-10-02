@@ -3,7 +3,7 @@
 # Load Cleaning Script =========================================================
 
 # Execute 00_clean.R
-source("clean_time_pb_first.R")
+source("01_clean_time_pb_first.R")
 
 # Anonymisation ================================================================
 
@@ -78,7 +78,7 @@ parkrun_df_cleaned <- parkrun_df_cleaned %>% select(-parkrunner, -name)
 
 
 # rearranging column order, this need to update when the data is totally cleaned
-parkrun_df_cleaned %>% select(`name`, everything())
+# parkrun_df_cleaned %>% select(`name`, everything())
 
 
 #export csv file
