@@ -13,13 +13,21 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Contributions
 
-
+Daniel Lloyd: Initial data cleaning (combining datasets, surface level cleaning), writing technical report
 
 # Methodology
 
 ## Data Dictionary 
 
 ## Raw Data to Clean Data
+
+The first step of cleaning the raw data was to combine every individual data file together. We then made use of tidyverse methods, such as mutate() to separate columns which had multiple variables in the same column, such as Age Group and Age Grade. The Parkrun variable was obtained using the file name from each dataset, and similarly, the Week variable was calculated using iteration, resetting to 1 after the location a Parkrun took place changes.
+
+The next was cleaning the Parkrunner column, and anonymising the data. The parkrunner column was very untidy, being incredibly verbose and hard to read, while still containing useful data, such as milestone data. It also contained the names of each runner, which is a massive privacy risk. By separating the variables into different columns, anonymising the data using a Caesar Cipher, we could ensure that the all the relevant data remained, and the name's of each runner remained obscured.
+
+The final step was to clean for the time variables. There are three variables that were stored in Time, that being the time to complete a race, the personal best time set by a runner for that location, and whether or not that was their first time running that parkrun. By separating the columns, we could obtain information regarding repeat runners, how many runners were first timers, etc. 
+
+By taking these steps, we were able to produce a tidy dataset which contained all of the relevant data for answering the key questions set by Puma.
 
 ## Key Questions
 
