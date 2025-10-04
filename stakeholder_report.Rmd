@@ -20,6 +20,23 @@ parkrun_df <- read_csv("clean-data.csv")
 
 ## Question Three: Do people move between Parkruns? How does this affect advertising?
 
+```{r people_mixing, echo=FALSE}
+# For each runner, count the number of parkruns they have been to
+location_counts <- parkrun_df %>%
+  group_by(name_id) %>%
+  filter(name_id != "UNK") %>% # Remove unknown runners
+  summarise(num_parkruns = n_distinct(parkrun)) %>%
+  arrange(desc(num_parkruns))
+
+# Summarise the proportion of people who having gone to different parkruns
+location_summary <- location_counts %>%
+  summarise(
+    total_runners = n(),
+    multi_parkrun_runners = sum(num_parkruns > 1),
+    percent_multi = 100 * mean(num_parkruns > 1)
+  )
+```
+
 ## Question Four: Where do elite runners like to run?
 
 ## Question Five: What locations feature the most consistent runners?
