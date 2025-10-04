@@ -3,7 +3,7 @@
 # Load Cleaning Script =========================================================
 
 # Execute 00_clean.R
-source("00_clean.R")
+source("01_clean_time_pb_first.R")
 
 # Anonymisation ================================================================
 
@@ -72,13 +72,14 @@ parkrun_df_cleaned <- parkrun_df %>%
                              NA_integer_)
   )
 
-# remove column 'parkrunner' and 'name'
-parkrun_df_cleaned <- parkrun_df_cleaned %>% select(-parkrunner, -name)
+# remove column 'parkrunner' and 'name' and 'week_num'
+parkrun_df_cleaned <- parkrun_df_cleaned %>% select(-parkrunner, -name, -week_num)
 
 
 
 # rearranging column order, this need to update when the data is totally cleaned
-parkrun_df_cleaned %>% select(`name`, everything())
+parkrun_df_cleaned <- parkrun_df_cleaned %>% 
+  select(name_id, everything())
 
 
 #export csv file
