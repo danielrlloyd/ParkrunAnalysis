@@ -10,4 +10,36 @@ knitr::opts_chunk$set(echo = TRUE)
 parkrun_df <- read_csv("clean-data.csv")
 ```
 
+# Overview
+
+# Key Insights
+
+## Question One: Which Parkrun provides the best marketing opportunity with the largest number of people?
+
+## Question Two: Do new people come each week or is it always the same people?
+
+## Question Three: Do people move between Parkruns? How does this affect advertising?
+
+## Question Four: Where do elite runners like to run?
+
+## Question Five: What locations feature the most consistent runners?
+
+## Question Six: Does distance between Parkruns affect how much mixing occurs?
+
+# Summary and Conclusion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
