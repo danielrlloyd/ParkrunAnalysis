@@ -1,0 +1,13 @@
+---
+title: "Puma Marketing Strategies and Parkruns"
+author: "Daniel Lloyd"
+date: "2025-10-04"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+parkrun_df <- read_csv("clean-data.csv")
+```
+
+
