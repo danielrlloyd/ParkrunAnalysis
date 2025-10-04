@@ -7,6 +7,18 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+# Load packages
+library(rvest)
+library(tidyselect)
+library(xml2)
+library(tidyverse)
+library(purrr)
+library(readr)
+library(stringr)
+library(patchwork)
+
+# Read parkrun data
 parkrun_df <- read_csv("clean-data.csv")
 ```
 
@@ -35,6 +47,23 @@ location_summary <- location_counts %>%
     multi_parkrun_runners = sum(num_parkruns > 1),
     percent_multi = 100 * mean(num_parkruns > 1)
   )
+
+# For each runner who has attended multiple parkruns,
+# summarise which parkruns they attended.
+runner_location_summary <- left_join(parkrun_df, location_counts) %>%
+  group_by(name_id) %>%
+  filter(num_parkruns > 1) %>%
+  summarise(parkruns = paste0(unique(parkrun), collapse=", "))
+
+# Plot counts of people who attended different numbers of parkrun locations
+mixing_counts <- location_counts %>%
+  ggplot(aes(x=num_parkruns)) +
+  geom_bar() +
+  theme_classic() +
+  labs(x = "Parkrun Location", 
+       y = "Count",
+       title = "Figure 1. Counts of Parkrun Mixing")
+  
 ```
 
 ## Question Four: Where do elite runners like to run?
