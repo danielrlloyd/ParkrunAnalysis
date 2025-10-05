@@ -17,6 +17,7 @@ library(purrr)
 library(readr)
 library(stringr)
 library(patchwork)
+library(kableExtra)
 
 # Read parkrun data
 parkrun_df <- read_csv("clean-data.csv")
@@ -50,20 +51,30 @@ location_summary <- location_counts %>%
 
 # For each runner who has attended multiple parkruns,
 # summarise which parkruns they attended.
-runner_location_summary <- left_join(parkrun_df, location_counts) %>%
+runner_locations <- left_join(parkrun_df, location_counts) %>%
   group_by(name_id) %>%
   filter(num_parkruns > 1) %>%
   summarise(parkruns = paste0(unique(parkrun), collapse=", "))
 
+# Table showing the summary of how many runners have attended other parkruns
+location_summary %>%
+    kbl(
+    col.names = c("Total Runners", "Mixed Runners", "Proportion of Mixed Runners"), 
+    caption = "Proportion of runners who have attended a different parkrun",
+    booktabs = TRUE,
+    ) %>%
+  kable_styling(latex_options = c("striped", "scale_down"))
+
 # Plot counts of people who attended different numbers of parkrun locations
-mixing_counts <- location_counts %>%
+location_counts %>%
   ggplot(aes(x=num_parkruns)) +
-  geom_bar() +
+  geom_bar(fill="steelblue") +
+  geom_text(stat="count", aes(label=..count..), vjust = -0.5) +
+  scale_x_continuous(breaks = 1:7) +
   theme_classic() +
-  labs(x = "Parkrun Location", 
+  labs(x = "Number of Parkruns Attended", 
        y = "Count",
-       title = "Figure 1. Counts of Parkrun Mixing")
-  
+       title = "Figure 2. Counts of Parkrun Mixing by people")
 ```
 
 ## Question Four: Where do elite runners like to run?
