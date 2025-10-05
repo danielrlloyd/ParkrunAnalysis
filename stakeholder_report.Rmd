@@ -33,6 +33,8 @@ parkrun_df <- read_csv("clean-data.csv")
 
 ## Question Three: Do people move between Parkruns? How does this affect advertising?
 
+In order to determine whether or not runners attend different Parkruns, we can simply count the number of Parkrun locations each runner has been to in the past 11 weeks. However, due to unidentifiability, we cannot include any unknown runners in this question.
+
 ```{r people_mixing, echo=FALSE}
 # For each runner, count the number of parkruns they have been to
 location_counts <- parkrun_df %>%
@@ -59,9 +61,10 @@ runner_locations <- left_join(parkrun_df, location_counts) %>%
 # Table showing the summary of how many runners have attended other parkruns
 location_summary %>%
     kbl(
-    col.names = c("Total Runners", "Mixed Runners", "Proportion of Mixed Runners"), 
+    col.names = c("Total Runners", "Mixed Runners", "Percentage of Mixed Runners"), 
     caption = "Proportion of runners who have attended a different parkrun",
     booktabs = TRUE,
+    digits = 2
     ) %>%
   kable_styling(latex_options = c("striped", "scale_down"))
 
@@ -76,6 +79,8 @@ location_counts %>%
        y = "Count",
        title = "Figure 2. Counts of Parkrun Mixing by people")
 ```
+
+The above table (Figure 1) shows that there is a significant number of runners who have attended Parkruns at mulitple locations (26.6%), or about 1200 runners out of 4600. However, Figure 2 shows that the vast majority of runners have only attended events at one Parkrun location. Therefore, advertising at fewer locations may result in fewer future customers. As such, advertising at Parkruns by popularity is probably the safest option.
 
 ## Question Four: Where do elite runners like to run?
 
