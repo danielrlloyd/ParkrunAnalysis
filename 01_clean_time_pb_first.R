@@ -98,12 +98,11 @@ pb_seconds_final <- ifelse(!is.na(pb_seconds_from_text),
                            ifelse(has_new_pb, df$Time_seconds, df$min_secs_group))
 df$Pb_time <- seconds_to_hms(pb_seconds_final)
 
-# First_timer:
-#   base = earliest week per (parkrun, parkrunner); if all week NA, first row
-#   override = if "First Timer!" or "New PB!" present, force TRUE
+# ---- Define First_timer column ----
 df <- df %>%
   group_by(parkrun, parkrunner) %>%
   mutate(
+    # Base rule: identify each participant’s first recorded run at the same parkrun
     .ft_base = if (!all(is.na(week_num))) {
       week_num == min(week_num, na.rm = TRUE)
     } else {
@@ -112,17 +111,21 @@ df <- df %>%
   ) %>%
   ungroup() %>%
   mutate(
-    First_timer = ifelse(has_first_flag | has_new_pb, TRUE, .ft_base)
+    # Determine the initial First_timer flag
+    #    (TRUE only if the record text contains "First Timer!" or it's the earliest week)
+    First_timer = ifelse(has_first_flag, TRUE, .ft_base),
+    
+    # If the participant’s name is "Unknown", set First_timer to NA
+    First_timer = ifelse(parkrunner == "Unknown", NA, First_timer)
   )
 
-# ---- Remove all temporary columns & write ----
+
+# ---- Remove temporary columns and export ----
 df_out <- df %>%
   select(
-    -Time_token,         # temp extracted token
-    -min_secs_group,     # temp group min seconds
-    -.ft_base            # temp base first-timer flag
+    -tidyselect::any_of(c("Time_token", "min_secs_group", ".ft_base"))
   ) %>%
-  select(dplyr::everything(), Pb_time, First_timer)  # ensure new cols are present
+  select(dplyr::everything(), Pb_time, First_timer)  # ensure new columns appear at the end
 
 # Keep in-memory for downstream work if needed
 parkrun_df <- df_out
