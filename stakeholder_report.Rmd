@@ -53,10 +53,10 @@ location_summary <- location_counts %>%
 
 # For each runner who has attended multiple parkruns,
 # summarise which parkruns they attended.
-runner_locations <- left_join(parkrun_df, location_counts) %>%
-  group_by(name_id) %>%
-  filter(num_parkruns > 1) %>%
-  summarise(parkruns = paste0(unique(parkrun), collapse=", "))
+# runner_locations <- left_join(parkrun_df, location_counts) %>%
+  # group_by(name_id) %>%
+  # filter(num_parkruns > 1) %>%
+  # summarise(parkruns = paste0(unique(parkrun), collapse=", "))
 
 # Table showing the summary of how many runners have attended other parkruns
 location_summary %>%
@@ -72,15 +72,17 @@ location_summary %>%
 location_counts %>%
   ggplot(aes(x=num_parkruns)) +
   geom_bar(fill="steelblue") +
-  geom_text(stat="count", aes(label=..count..), vjust = -0.5) +
+  geom_text(stat="count", aes(label = after_stat(count)), vjust = -0.5) +
   scale_x_continuous(breaks = 1:7) +
   theme_classic() +
   labs(x = "Number of Parkruns Attended", 
        y = "Count",
-       title = "Figure 2. Counts of Parkrun Mixing by people")
+       title = "Figure 2. Counts of Parkruns Attended")
 ```
 
-The above table (Figure 1) shows that there is a significant number of runners who have attended Parkruns at mulitple locations (26.6%), or about 1200 runners out of 4600. However, Figure 2 shows that the vast majority of runners have only attended events at one Parkrun location. Therefore, advertising at fewer locations may result in fewer future customers. As such, advertising at Parkruns by popularity is probably the safest option.
+The above table (Figure 1) shows that there is a significant number of runners who have attended Parkruns at mulitple locations (26.6%), or about 1200 runners out of 4600. However, Figure 2 shows that the vast majority of runners have only attended events at one Parkrun location, with very few reaching out to others.
+
+However, this 26% overlap means that advertising across all locations is not going to be particularly budget effective, as advertisements will end up being displayed to people who have already bought Puma products. Therefore, advertising across fewer Parkrun locations can be a more economical option, as it would allow for the same effective advertisement reach, at a lower cost when compared to advertising at all locations.
 
 ## Question Four: Where do elite runners like to run?
 
