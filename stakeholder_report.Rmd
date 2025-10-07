@@ -35,7 +35,7 @@ parkrun_df <- read_csv("clean-data.csv")
 
 In order to determine whether or not runners attend different Parkruns, we can simply count the number of Parkrun locations each runner has been to in the past 11 weeks. However, due to unidentifiability, we cannot include any unknown runners in this question.
 
-```{r people_mixing, echo=FALSE}
+```{r people mixing, echo=FALSE}
 # For each runner, count the number of parkruns they have been to
 location_counts <- parkrun_df %>%
   group_by(name_id) %>%
@@ -89,6 +89,34 @@ However, this 26% overlap means that advertising across all locations is not goi
 ## Question Five: What locations feature the most consistent runners?
 
 ## Question Six: Does distance between Parkruns affect how much mixing occurs?
+
+```{r mixing vs distance, echo=FALSE}
+# Create a data frame to store coordinates of each Parkrun
+# Uses Google Maps coordinates
+parkrun_coords <- data.frame(
+  parkrun = c("Broadpark", 
+           "Foster", 
+           "Hagley Park", 
+           "Halswell Quarry", 
+           "Pegasus", 
+           "Riverlution", 
+           "Scarborough"),
+  lat = c(-43.48407765955925, 
+          -43.60662280393161, 
+          -43.528411796120665, 
+          -43.59913104444619,
+          -43.31040735466971,
+          -43.52080699964801,
+          -43.57286627879577),
+  lng = c(172.72225771008866, 
+          172.387170265916247, 
+          172.622954938927, 
+          172.5800077082442, 
+          172.69504267525784, 
+          172.65959254077748, 
+          172.76978873320155)
+)
+```
 
 # Summary and Conclusion
 
