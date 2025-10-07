@@ -90,13 +90,20 @@ However, this 26% overlap means that advertising across all locations is not goi
 # Create a data frame to store coordinates of each Parkrun
 # Uses Google Maps coordinates
 parkrun_coords <- data.frame(
-  parkrun = c("Broadpark", 
+  parkrun_lbl = c("Broadpark", # Used for labelling on map
            "Foster", 
            "Hagley Park", 
            "Halswell Quarry", 
            "Pegasus", 
            "Riverlution", 
            "Scarborough"),
+  parkrun_raw = c("broadpark", # Used for joining with other data frames
+           "foster", 
+           "hagley", 
+           "halswellquarry", 
+           "pegasus", 
+           "riverlution", 
+           "scarborough"),
   lat = c(-43.48407765955925, 
           -43.60662280393161, 
           -43.528411796120665, 
@@ -124,14 +131,22 @@ parkrun_coords_sf <- st_as_sf(parkrun_coords,
 parkrun_dist <- st_distance(parkrun_coords_sf)
 
 # Change row and column names to be parkrun locations
-rownames(parkrun_dist) <- parkrun_coords$parkrun
-colnames(parkrun_dist) <- parkrun_coords$parkrun
+rownames(parkrun_dist) <- parkrun_coords$parkrun_raw
+colnames(parkrun_dist) <- parkrun_coords$parkrun_raw
 
 # Convert distance matrix back to a data frame, such that it can be joined
 # with a mixing score data frame
 distance_df <- as.data.frame(as.table(as.matrix(parkrun_dist))) %>%
   rename(from = Var1, to = Var2, distance_m = Freq) %>%
   mutate(distance_km = as.numeric(distance_m/1000))
+
+# Filter distance_df for irrelevant or repeat data (A to A or A to B and B to A)
+# Does this by determining the pair of locations alphabetically, then only selecting
+# distinct pairs. This is done for joining purposes
+distance_df <- distance_df %>%
+  filter(from != to) %>%
+  mutate(pair = map2_chr(from, to, ~ paste(sort(c(.x, .y)), collapse = " - "))) %>%
+  distinct(pair, .keep_all = TRUE)
 
 # For each runner who has attended multiple parkruns,
 # summarise which parkruns they attended.
@@ -141,28 +156,30 @@ runner_locations <- left_join(parkrun_df, location_counts) %>%
   summarise(parkruns = paste0(unique(parkrun), collapse=", "))
 
 # Create a data frame that shows the pairs of locations a runner connects
+# Used to determine how much mixing occurs between these locations
 mixing_pairs <- runner_locations %>%
   mutate(parkrun_list = strsplit(parkruns, ",\\s*")) %>%
   unnest(parkrun_list) %>%
   group_by(name_id) %>%
   reframe(
-    pairs = combn(sort(unique(parkrun_list)), 2, FUN = paste, collapse = " - ", simplify = TRUE)
+    pair = combn(sort(unique(parkrun_list)), 2, FUN = paste, collapse = " - ", simplify = TRUE)
     ) %>%
-  unnest(pairs)
+  unnest(pair)
 
 # Compute a mixing score for each pair of locations
 mixing_score <- mixing_pairs %>%
-  count(pairs, name = "mixing_score") %>%
-  separate(pairs, into = c("from", "to"), sep = " - ")
+  count(pair, name = "mixing_score")
 
 # Join mixing_score and distance_df to get an analysable data frame
-distance_mixing <- full_join(distance_df, mixing_score, by = c("from", "to"))
+# Select relevant data (pair, distance in km, and mixing score)
+distance_mixing <- full_join(distance_df, mixing_score) %>%
+  select(pair, distance_km, mixing_score)
 
 # Create a map to visualise locations
 leaflet(parkrun_coords) %>%
   addTiles() %>%
   setView(lng = 172.6366, lat = -43.5320, zoom = 9) %>%
-  addMarkers(~lng, ~lat, popup = ~parkrun) %>%
+  addMarkers(~lng, ~lat, popup = ~parkrun_lbl) %>%
   addProviderTiles(providers$Stadia.Outdoors)
 ```
 
