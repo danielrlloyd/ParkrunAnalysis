@@ -114,10 +114,24 @@ parkrun_coords <- data.frame(
 )
 
 # Convert data frame to sf object
-parkrun_coords_sf <- st_as_sf(parkrun_coords, coords = c("lng", "lat"))
+# Changes coordinate system to ensure measurements are in metres
+parkrun_coords_sf <- st_as_sf(parkrun_coords,
+                              coords = c("lng", "lat"),
+                              crs = 4326) %>%
+  st_transform(crs = 2193)   # NZTM (New Zealand Transverse Mercator)
 
 # Create a distance matrix that shows distances between each pair of parkruns
 parkrun_dist <- st_distance(parkrun_coords_sf)
+
+# Change row and column names to be parkrun locations
+rownames(parkrun_dist) <- parkrun_coords$parkrun
+colnames(parkrun_dist) <- parkrun_coords$parkrun
+
+# Convert distance matrix back to a data frame, such that it can be joined
+# with a mixing score data frame
+distance_df <- as.data.frame(as.table(as.matrix(parkrun_dist))) %>%
+  rename(from = Var1, to = Var2, distance_m = Freq) %>%
+  mutate(distance_km = as.numeric(distance_m/1000))
 
 # For each runner who has attended multiple parkruns,
 # summarise which parkruns they attended.
@@ -140,6 +154,9 @@ mixing_pairs <- runner_locations %>%
 mixing_score <- mixing_pairs %>%
   count(pairs, name = "mixing_score") %>%
   separate(pairs, into = c("from", "to"), sep = " - ")
+
+# Join mixing_score and distance_df to get an analysable data frame
+distance_mixing <- full_join(distance_df, mixing_score, by = c("from", "to"))
 
 # Create a map to visualise locations
 leaflet(parkrun_coords) %>%
