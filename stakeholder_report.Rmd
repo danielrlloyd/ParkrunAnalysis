@@ -8,21 +8,25 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-# Load packages
-library(rvest)
+# Load packages ================================================================
+
+# General packages
 library(tidyselect)
-library(xml2)
 library(tidyverse)
 library(purrr)
 library(readr)
 library(stringr)
+
+# Packages for visualizations
 library(patchwork)
 library(kableExtra)
+
+# Packages for maps
 library(leaflet)
 library(leaflet.extras)
 library(sf)
 
-# Read parkrun data
+# Read data ====================================================================
 parkrun_df <- read_csv("clean-data.csv")
 ```
 
@@ -90,7 +94,7 @@ However, this 26% overlap means that advertising across all locations is not goi
 # Create a data frame to store coordinates of each Parkrun
 # Uses Google Maps coordinates
 parkrun_coords <- data.frame(
-  parkrun_lbl = c("Broadpark", # Used for labelling on map
+  parkrun_lbl = c("Broadpark", # Used for labelling parkruns on maps
            "Foster", 
            "Hagley Park", 
            "Halswell Quarry", 
@@ -104,14 +108,14 @@ parkrun_coords <- data.frame(
            "pegasus", 
            "riverlution", 
            "scarborough"),
-  lat = c(-43.48407765955925, 
+  lat = c(-43.48407765955925, # Latitude coordinates
           -43.60662280393161, 
           -43.528411796120665, 
           -43.59913104444619,
           -43.31040735466971,
           -43.52080699964801,
           -43.57286627879577),
-  lng = c(172.72225771008866, 
+  lng = c(172.72225771008866, # Longitude coordinates
           172.387170265916247, 
           172.622954938927, 
           172.5800077082442, 
@@ -177,8 +181,19 @@ mixing_score <- mixing_pairs %>%
 distance_mixing <- suppressMessages(left_join(distance_df, mixing_score)) %>%
   select(pair, distance_km, mixing_score)
 
-# Create a generalized linear model for predicting a mixing score using distance
-distance_mixing_model <- glm(mixing_score ~ distance_km, data = distance_mixing)
+# Create a LOESS regression model, since the data is non-normal, therefore a 
+# non-parametric model may work best.
+distance_mixing_model <- loess(mixing_score ~ distance_km, data = distance_mixing)
+
+# Visualize distance against mixing score
+distance_mixing %>%
+  ggplot(aes(x=distance_km, y=mixing_score)) +
+  geom_point() +
+  geom_smooth() +
+  theme_classic() +
+  labs(x = "Distance (km)", 
+       y = "Mixing Score",
+       title = "Figure 3. Mixing Score vs. Distance")
 
 # Create a map to visualise locations
 leaflet(parkrun_coords) %>%
