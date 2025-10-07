@@ -150,7 +150,8 @@ distance_df <- distance_df %>%
 
 # For each runner who has attended multiple parkruns,
 # summarise which parkruns they attended.
-runner_locations <- left_join(parkrun_df, location_counts) %>%
+# Uses suppressMessages to silence join output
+runner_locations <- suppressMessages(left_join(parkrun_df, location_counts)) %>%
   group_by(name_id) %>%
   filter(num_parkruns > 1) %>%
   summarise(parkruns = paste0(unique(parkrun), collapse=", "))
@@ -172,8 +173,12 @@ mixing_score <- mixing_pairs %>%
 
 # Join mixing_score and distance_df to get an analysable data frame
 # Select relevant data (pair, distance in km, and mixing score)
-distance_mixing <- full_join(distance_df, mixing_score) %>%
+# Uses suppressMessages to remove any output
+distance_mixing <- suppressMessages(left_join(distance_df, mixing_score)) %>%
   select(pair, distance_km, mixing_score)
+
+# Create a generalized linear model for predicting a mixing score using distance
+distance_mixing_model <- glm(mixing_score ~ distance_km, data = distance_mixing)
 
 # Create a map to visualise locations
 leaflet(parkrun_coords) %>%
