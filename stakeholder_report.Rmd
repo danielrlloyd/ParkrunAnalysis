@@ -228,7 +228,9 @@ distance_mixing %>%
 
 The above bar chart (Figure 4), also shows this correlation, but also labels each parkrun pair with the distance between them. As is seen in the chart, the Hagley and Riverlution parkruns are very close (only 3km apart), and as such, receive a very large amount of mixing.
 
+As for how this affects advertising, this allows for more control over audience overlap. Given the amount of mixing between the Hagley and Riverlution parkruns, advertising at just one of these parkruns would minimise the amount of overlap and spending, without reducing the effectiveness of the advertisements. However, given the amount of distance between the Foster and Pegasus parkruns, advertising at only one location would only harm any marketing efforts. 
 
+As such, for pairs of parkruns with high amounts of mixing, advertising at just one location would be the best option, preferably the parkrun which is generally more popular/has the most runners.
 
 # Summary and Conclusion
 
