@@ -152,15 +152,6 @@ gender_ratios <- elite_analysis_gender %>%
 print("Gender Ratios of Elite Runners by Location:")
 print(gender_ratios)
 
-# Save the results
-write.csv(elite_analysis_gender, "elite_runners_grade_analysis.csv", row.names = FALSE)
-write.csv(elite_analysis_overall, "elite_runners_overall.csv", row.names = FALSE)
-write.csv(gender_ratios, "elite_gender_ratios.csv", row.names = FALSE)
-
-cat("\nAnalysis files saved:\n")
-cat("- elite_runners_grade_analysis.csv\n")
-cat("- elite_runners_overall.csv\n")
-cat("- elite_gender_ratios.csv\n")
 
 # QUESTION 4: CONSISTENT RUNNERS ANALYSIS
 
@@ -258,56 +249,4 @@ p5 <- ggplot(weekly_participation, aes(x = week_num, y = weekly_runners, color =
   scale_x_continuous(breaks = 1:max(weekly_participation$week_num))
 
 print(p5)
-
-# COMBINED ANALYSIS: Elite vs Consistent Runners
-
-# Identify runners who are both elite and consistent
-elite_consistent_runners <- clean_data %>%
-  group_by(name_id, parkrun) %>%
-  summarise(
-    is_elite = any(elite_runner),
-    weeks_participated = n_distinct(week),
-    avg_time = mean(Time_minutes)
-  ) %>%
-  filter(is_elite & weeks_participated >= 3) %>%
-  arrange(parkrun, desc(weeks_participated), avg_time)
-
-print("Elite and Consistent Runners (3+ weeks):")
-print(elite_consistent_runners)
-
-# Summary of elite consistent runners by location
-elite_consistent_summary <- elite_consistent_runners %>%
-  group_by(parkrun) %>%
-  summarise(
-    elite_consistent_count = n(),
-    avg_weeks_elite = mean(weeks_participated)
-  ) %>%
-  arrange(desc(elite_consistent_count))
-
-print("Elite and Consistent Runners by Location:")
-print(elite_consistent_summary)
-
-
-
-# Save key results to CSV for further analysis
-write.csv(elite_analysis, "elite_runners_analysis.csv", row.names = FALSE)
-write.csv(consistency_by_location, "runner_consistency_analysis.csv", row.names = FALSE)
-write.csv(elite_consistent_runners, "elite_consistent_runners.csv", row.names = FALSE)
-
-# Print key insights
-cat("\n=== KEY INSIGHTS ===\n")
-cat("1. Elite Runner Targeting:\n")
-cat("   - Focus on", elite_analysis$parkrun[1], "with", elite_analysis$elite_runners[1], "elite runners\n")
-cat("   -", round(elite_analysis$elite_percentage[1], 1), "% of runners at this location are elite\n")
-cat("   - Fastest time:", round(elite_analysis$fastest_time[1], 2), "minutes\n\n")
-
-cat("2. Consistent Runners:\n")
-cat("   - Total highly consistent runners (5+ weeks):", overall_consistency$n[overall_consistency$consistency_level == "Highly Consistent (5+ weeks)"], "\n")
-cat("   - Most consistent location:", consistency_by_location$parkrun[1], "\n")
-cat("   - Average weeks per runner at top location:", round(consistency_by_location$avg_weeks_per_runner[1], 1), "\n\n")
-
-cat("3. Elite & Consistent Runners (Most Valuable):\n")
-cat("   - Total elite runners who are also consistent:", nrow(elite_consistent_runners), "\n")
-cat("   - Best location for elite+consistent:", elite_consistent_summary$parkrun[1], "\n")
-cat("   - Count at best location:", elite_consistent_summary$elite_consistent_count[1], "\n")
 
