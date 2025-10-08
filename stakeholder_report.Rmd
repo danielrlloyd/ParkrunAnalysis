@@ -184,24 +184,51 @@ distance_mixing <- suppressMessages(left_join(distance_df, mixing_score)) %>%
 # Create a generalized linear model using a Gamma distribution
 # Gamma distributions work for skewed data, and produces more acceptable results
 distance_mixing_model <- glm(mixing_score ~ distance_km, data = distance_mixing, family = Gamma)
+```
 
-# Visualize distance against mixing score# Visualize distance against mixing score
+In order to determine whether or not the distance between two Parkruns predicts how much mixing occurs, we can obtain each unique pair of Parkruns, and then using geographical data, determine the distances between these pairs, effectively creating a map of each Parkrun location.
+
+```{r mixing map, echo=FALSE}
+# # Create a map to visualise locations
+# leaflet(parkrun_coords) %>%
+#   addTiles() %>%
+#   setView(lng = 172.6366, lat = -43.5320, zoom = 9) %>%
+#   addMarkers(~lng, ~lat, popup = ~parkrun_lbl) %>%
+#   addProviderTiles(providers$Stadia.Outdoors)
+```
+
+We can then count the number of runners who have gone to both locations in these pairs, and set that as our Mixing Score. A higher Mixing Score means more runners have attended both Parkruns in the past 11 weeks.
+
+```{r mixing correlation, echo=FALSE}
+# Visualize distance against mixing score
 distance_mixing %>%
   ggplot(aes(x=distance_km, y=mixing_score)) +
   geom_point() +
-  geom_smooth() +
+  geom_smooth(method = "glm") +
   theme_classic() +
   labs(x = "Distance (km)", 
        y = "Mixing Score",
        title = "Figure 3. Mixing Score vs. Distance")
-
-# Create a map to visualise locations
-leaflet(parkrun_coords) %>%
-  addTiles() %>%
-  setView(lng = 172.6366, lat = -43.5320, zoom = 9) %>%
-  addMarkers(~lng, ~lat, popup = ~parkrun_lbl) %>%
-  addProviderTiles(providers$Stadia.Outdoors)
 ```
+
+As seen above, Figure 3 shows that there is a negative correlation between Distance and Mixing Score. In other words, as the distance between parkruns increases, the amount of mixing decreases.
+
+```{r mixing bar chart, echo=FALSE}
+distance_mixing %>%
+  ggplot(aes(x=reorder(pair, distance_km), y=mixing_score)) +
+  geom_col(fill="steelblue") +
+  geom_text(aes(label = paste0(round(distance_km, 1), " km")), vjust = -0.5, hjust = -0.1, angle = 75) +
+  ylim(0, 650) +
+  theme_classic() +
+  labs(x = "Pairs of Parkruns by distance", 
+       y = "Mixing Score",
+       title = "Figure 4. Parkrun Pairs and Mixing Scores arranged by distance") +
+  guides(x=guide_axis(angle=60))
+```
+
+The above bar chart (Figure 4), also shows this correlation, but also labels each parkrun pair with the distance between them. As is seen in the chart, the Hagley and Riverlution parkruns are very close (only 3km apart), and as such, receive a very large amount of mixing.
+
+
 
 # Summary and Conclusion
 
