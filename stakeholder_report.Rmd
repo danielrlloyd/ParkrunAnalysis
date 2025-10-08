@@ -201,14 +201,16 @@ We can then count the number of runners who have gone to both locations in these
 
 ```{r mixing correlation, echo=FALSE}
 # Visualize distance against mixing score
-distance_mixing %>%
+
+  distance_mixing %>%
   ggplot(aes(x=distance_km, y=mixing_score)) +
   geom_point() +
-  geom_smooth(method = "glm") +
+  suppressMessages(geom_smooth(method = "glm")) +
   theme_classic() +
   labs(x = "Distance (km)", 
        y = "Mixing Score",
        title = "Figure 3. Mixing Score vs. Distance")
+
 ```
 
 As seen above, Figure 3 shows that there is a negative correlation between Distance and Mixing Score. In other words, as the distance between parkruns increases, the amount of mixing decreases.
