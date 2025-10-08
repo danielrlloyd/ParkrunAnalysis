@@ -181,11 +181,11 @@ mixing_score <- mixing_pairs %>%
 distance_mixing <- suppressMessages(left_join(distance_df, mixing_score)) %>%
   select(pair, distance_km, mixing_score)
 
-# Create a LOESS regression model, since the data is non-normal, therefore a 
-# non-parametric model may work best.
-distance_mixing_model <- loess(mixing_score ~ distance_km, data = distance_mixing)
+# Create a generalized linear model using a Gamma distribution
+# Gamma distributions work for skewed data, and produces more acceptable results
+distance_mixing_model <- glm(mixing_score ~ distance_km, data = distance_mixing, family = Gamma)
 
-# Visualize distance against mixing score
+# Visualize distance against mixing score# Visualize distance against mixing score
 distance_mixing %>%
   ggplot(aes(x=distance_km, y=mixing_score)) +
   geom_point() +
