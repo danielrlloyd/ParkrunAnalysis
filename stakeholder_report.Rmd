@@ -86,7 +86,7 @@ q1_summary %>%
     booktabs = TRUE,
     digits = 2
     ) %>%
-  kable_styling(latex_options = c("striped", "scale_down"))
+  kable_styling(latex_options = c("striped", "scale_down", "hold_position"))
 
 
 
@@ -164,7 +164,7 @@ q2_weekly %>%
     booktabs = TRUE,
     digits = 2
     ) %>%
-  kable_styling(latex_options = c("striped", "scale_down"))
+  kable_styling(latex_options = c("striped", "scale_down", "hold_position"))
   
 
 # Check for a 'First_timer' column (optional)
@@ -195,7 +195,7 @@ if (length(first_timer_cols) > 0) {
       booktabs = TRUE,
       digits = 2
       ) %>%
-    kable_styling(latex_options = c("striped", "scale_down"))
+    kable_styling(latex_options = c("striped", "scale_down", "hold_position"))
 }
 
 # Bar chart – New vs returning each week
@@ -215,6 +215,8 @@ p_q2 <- ggplot(q2_long, aes(x = week, y = Count, fill = Type)) +
 
 print(p_q2)
 ```
+
+\newpage
 
 ## Question Three: Do people move between Parkruns? How does this affect advertising?
 
@@ -244,7 +246,7 @@ location_summary %>%
     booktabs = TRUE,
     digits = 2
     ) %>%
-  kable_styling(latex_options = c("striped", "scale_down"))
+  kable_styling(latex_options = c("striped", "scale_down", "hold_position"))
 
 # Plot counts of people who attended different numbers of parkrun locations
 location_counts %>%
@@ -258,7 +260,7 @@ location_counts %>%
        title = "Figure 2. Counts of Parkruns Attended")
 ```
 
-The above table (Figure 1) shows that there is a significant number of runners who have attended Parkruns at mulitple locations (26.6%), or about 1200 runners out of 4600. However, Figure 2 shows that the vast majority of runners have only attended events at one Parkrun location, with very few reaching out to others.
+The above table (Table 4) shows that there is a significant number of runners who have attended Parkruns at mulitple locations (26.6%), or about 1200 runners out of 4600. However, Figure 2 shows that the vast majority of runners have only attended events at one Parkrun location, with very few reaching out to others.
 
 However, this 26% overlap means that advertising across all locations is not going to be particularly budget effective, as advertisements will end up being displayed to people who have already bought Puma products. Therefore, advertising across fewer Parkrun locations can be a more economical option, as it would allow for the same effective advertisement reach, at a lower cost when compared to advertising at all locations.
 
