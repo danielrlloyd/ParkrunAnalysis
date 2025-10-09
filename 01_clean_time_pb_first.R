@@ -1,24 +1,21 @@
 # ==========================================
-# clean_time_pb_first.R
-# Build on 00_clean.R (expects `parkrun_df` in memory)
-# Adds: Time_hms, Time_seconds, Pb_time, First_timer
-# Writes only: parkrun_time_with_pb_first.csv (in working directory)
+# 01_clean_time_pb_first.R
+# Build on 00_clean.R 
+# Adds: Time_seconds, Time_hms, Pb_time, First_timer
+# Writes: 01_clean_time_pb_first.csv (working directory)
 # ==========================================
 suppressPackageStartupMessages({
   library(dplyr); library(readr); library(stringr); library(tidyr)
 })
 
-source("00_clean.R")
-
-# ---- Guard ----
+# --- Require 00_clean.R output ---
 if (!exists("parkrun_df", inherits = TRUE)) {
   stop("No `parkrun_df` found. Run source('00_clean.R') first.")
 }
 df <- get("parkrun_df", inherits = TRUE)
 
-# ---- Helpers ----
+# --- Helper functions ---
 extract_first_time <- function(x) {
-  # First time-like token at string start: HH:MM:SS | MM:SS | seconds
   ifelse(
     is.na(x), NA_character_,
     {
@@ -71,62 +68,45 @@ if (any(mask_num)) {
 }
 df$Time_hms <- seconds_to_hms(df$Time_seconds)
 
-# ---- PB & First-timer rules ----
+# ---- PB rules ----
 # PB priority:
-#   1) explicit trailing "PB xx:yy(:zz)" in Time
-#   2) if "New PB!" present, use this race time (Time_seconds)
-#   3) else, group min(Time_seconds) per (parkrun, parkrunner)
-pb_token        <- str_match(df$Time, "(?i)pb\\s*:?\\s*(\\d{1,2}:\\d{2}(?::\\d{2})?)")[,2]
-has_new_pb      <- !is.na(df$Time) & str_detect(df$Time, "(?i)\\bnew\\s*pb!?\\b")
-has_first_flag  <- !is.na(df$Time) & str_detect(df$Time, "(?i)\\bfirst\\s*timer!?\\b")
+#   1 explicit trailing "PB xx:yy(:zz)" in Time
+#   2 if "New PB!" present, use this race time (Time_seconds)
+#   3 else, group min(Time_seconds) per (parkrun, parkrunner)
+pb_token   <- str_match(df$Time, "(?i)pb\\s*:?\\s*(\\d{1,2}:\\d{2}(?::\\d{2})?)")[,2]
+has_new_pb <- !is.na(df$Time) & str_detect(df$Time, "(?i)\\bnew\\s*pb!?\\b")
 
 df <- df %>%
-  mutate(
-    Time_seconds = as.integer(Time_seconds),
-    week_num     = suppressWarnings(as.integer(week))
-  ) %>%
+  mutate(Time_seconds = as.integer(Time_seconds)) %>%
   group_by(parkrun, parkrunner) %>%
   mutate(
-    min_secs_group = suppressWarnings(min(Time_seconds, na.rm = TRUE)),
-    min_secs_group = ifelse(is.infinite(min_secs_group), NA_integer_, as.integer(min_secs_group))
+    .min_secs_group = suppressWarnings(min(Time_seconds, na.rm = TRUE)),
+    .min_secs_group = ifelse(is.infinite(.min_secs_group), NA_integer_, as.integer(.min_secs_group))
   ) %>%
   ungroup()
 
 pb_seconds_from_text <- vapply(pb_token, parse_time_token_to_seconds, integer(1))
 pb_seconds_final <- ifelse(!is.na(pb_seconds_from_text),
                            pb_seconds_from_text,
-                           ifelse(has_new_pb, df$Time_seconds, df$min_secs_group))
+                           ifelse(has_new_pb, df$Time_seconds, df$.min_secs_group))
 df$Pb_time <- seconds_to_hms(pb_seconds_final)
 
 # ---- Define First_timer column ----
 df <- df %>%
-  group_by(parkrun, parkrunner) %>%
   mutate(
-    # Base rule: identify each participant’s first recorded run at the same parkrun
-    .ft_base = if (!all(is.na(week_num))) {
-      week_num == min(week_num, na.rm = TRUE)
-    } else {
-      dplyr::row_number() == 1
-    }
-  ) %>%
-  ungroup() %>%
-  mutate(
-    # Determine the initial First_timer flag
-    #    (TRUE only if the record text contains "First Timer!" or it's the earliest week)
-    First_timer = ifelse(has_first_flag, TRUE, .ft_base),
-    
-    # If the participant’s name is "Unknown", set First_timer to NA
-    First_timer = ifelse(parkrunner == "Unknown", NA, First_timer)
+    First_timer = case_when(
+      is.na(Time) ~ NA,  # keep NA
+      str_detect(Time, regex("First", ignore_case = TRUE)) ~ TRUE,
+      TRUE ~ FALSE
+    )
   )
 
-
-# ---- Remove temporary columns and export ----
+# --- Output ---
 df_out <- df %>%
-  select(
-    -tidyselect::any_of(c("Time_token", "min_secs_group", ".ft_base"))
-  ) %>%
-  select(dplyr::everything(), Pb_time, First_timer)  # ensure new columns appear at the end
+  select(-Time_token, -.min_secs_group) %>%
+  select(dplyr::everything(), Pb_time, First_timer)
 
-# Keep in-memory for downstream work if needed
+out_path <- file.path(getwd(), "01_clean_time_pb_first.csv")
+readr::write_csv(df_out, out_path)
+
 parkrun_df <- df_out
-
