@@ -20,7 +20,11 @@ parkrun_df <- read_csv("clean-data.csv")
 
 # Contributions
 
-Daniel Lloyd: Wrote the data dictionary, initial data cleaning (combining datasets, surface level cleaning), writing technical report, answered key questions 3 and 6.
+Daniel Lloyd:
+
+Scripts: 00_clean.R - Combining every data file, and cleaning for Parkrun, Week, Gender, and Position_by_gender.
+
+Stakeholder Report: Created a format for the stakeholder report. Answered all of question three, and question six.
 
 
 # Methodology
