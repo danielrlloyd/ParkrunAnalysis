@@ -7,13 +7,21 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+# General packages
+library(tidyselect)
+library(tidyverse)
+library(purrr)
+library(readr)
+library(stringr)
+parkrun_df <- read_csv("clean-data.csv")
 ```
 
 # Overview
 
 # Contributions
 
-Daniel Lloyd: Wrote the data dictionary, initial data cleaning (combining datasets, surface level cleaning), writing technical report
+Daniel Lloyd: Wrote the data dictionary, initial data cleaning (combining datasets, surface level cleaning), writing technical report, answered key questions 3 and 6.
+
 
 # Methodology
 
@@ -31,7 +39,33 @@ By taking these steps, we were able to produce a tidy dataset which contained al
 
 ## Key Questions
 
+### Question Three (Daniel)
+
+Question: Do people move between Parkruns? Does this mean if you advertise at fewer places you eventually
+see people from other locations?
+
+In order to answer this question, I went about determining how many locations different runners have been to. Results showed that 26.6% of runners have gone to another location. I then used a bar chart to determine how many people have been to different numbers of Parkruns. 
+
+My interpretation of the second half of the question, is that it has to do with audience overlap. Essentially, if runners had bought Puma products due to advertising at one location, would those customers appear in other locations, where the advertisements would have little to no effect? I came to the conclusion that more audience overlap means that advertising at more locations would have diminishing returns on the financial investment, and recommended advertising at more popular locations.
+
+### Question Six (Daniel)
+
+Question: Does the distance between Parkrun locations predict the amount of mixing of people between those
+locations?
+
+In order to answer this question, I first obtained the geographical coordinates for each Parkrun. Using the sf and leaflet libraries, I could then obtain the distances between each location (straight line, point-to-point), as a matrix, which I converted to a data frame.
+
+I then created a new df mixing_pairs, which connected every Parkrun to every other Parkrun in pairwise relationships. Using this, and a runner_locations summary to determine the locations each runner has been to, I obtained a sort of mixing score; the number of runners that have been to both locations in a pair. Using the mixing score, and joining it with the distance data frame to obtain a data frame with a distance and a score for each pair of Parkruns (distance_mixing). I could then create a predictive model, using glm() with family = Gamma.
+
+
+
 ## Limitations of the Dataset
+
+Marketing Knowledge (Q3): My knowledge of marketing is very limited, and the research I did, while very informative, does not give me full confidence in a correct conclusion.
+
+Distances (Q6): The issue with calculating if distance predicts mixing between two Parkruns, is an issue of realism. The distances I measured were just straight lines from Parkrun to Parkrun. As such, the possible mixing scores are not reflective of real world travel distances, such as road layouts, traffic, etc. As such, two Parkruns may be very far from each other, but if it takes very little time to get between them, there may be more mixing present. 
+
+Non-Normal Data (Q6): The distance_mixing data frame was not Normal data, and was heaviliy right-skewed. As such, I could not fit a typical linear model, and had to use a Gamma distribution, which produced the best results in terms of residuals and QQ-plot.
 
 ## Future Improvements and Development
 
