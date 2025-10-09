@@ -17,8 +17,9 @@ library(kableExtra)
 library(leaflet)
 library(leaflet.extras)
 library(sf)
+library(crunch)
 
-parkrun_df <- read_csv("clean-data.csv")
+parkrun_df <- read_csv("clean-data.csv.gz")
 ```
 
 # Overview
@@ -71,8 +72,10 @@ dictionary_def <- data.frame(
     "Position by Gender",
     "Gender",
     "Age Group",
+    "Grade",
     "Club",
-    "Run Time",
+    "Time Seconds",
+    "Time HMS",
     "PB Time",
     "First Timer",
     "Parkruns Completed"
@@ -85,7 +88,9 @@ dictionary_def <- data.frame(
     "Integer",
     "Character",
     "String",
+    "Float",
     "String",
+    "Integer",
     "Time",
     "Time",
     "Boolean",
@@ -101,7 +106,9 @@ dictionary_def <- data.frame(
     "AB##-##",
     "",
     "",
-    "Less than or equal to Run Time",
+    "",
+    "",
+    "Less than or equal to Time HMS",
     "",
     ""
   ),
@@ -113,8 +120,10 @@ dictionary_def <- data.frame(
     "The position a runner achieved as grouped by their gender",
     "The biological sex of a runner",
     "The age group of a runner",
+    "The grade a runner receives relative to their age",
     "The club a runner may belong to (optional)",
-    "The time a runner completed the parkrun",
+    "The time a runner completed the Parkrun in seconds",
+    "The time a runner completed the Parkrun in HH:MM:SS form",
     "The personal best record set by a runner for that Parkrun location",
     "A Boolean determining if this is a runners first time set for a location.",
     "The number of parkruns a runner has completed, regardless of location."
@@ -127,8 +136,10 @@ dictionary_def <- data.frame(
     "5",
     "F",
     "VW40-44",
+    "74.46",
     "Rolleston Road Runners",
-    "19:33",
+    "1200",
+    "20:00",
     "17:54",
     "FALSE",
     "51"
