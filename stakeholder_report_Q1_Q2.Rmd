@@ -1,0 +1,367 @@
+---
+title: "Puma Marketing Strategies and Parkruns"
+author: "Daniel Lloyd"
+date: "2025-10-04"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load packages ================================================================
+
+# General packages
+library(tidyselect)
+library(tidyverse)
+library(purrr)
+library(readr)
+library(stringr)
+
+# Packages for visualizations
+library(patchwork)
+library(kableExtra)
+
+# Packages for maps
+library(leaflet)
+library(leaflet.extras)
+library(sf)
+
+
+#Q1 and Q2 library
+library(tidyverse)
+library(lubridate)
+library(scales)
+library(ggthemes)
+library(ggplot2)
+library(dplyr)
+
+# Read data ====================================================================
+parkrun_df <- read_csv("clean-data.csv")
+```
+
+# Overview
+
+# Key Insights
+
+## Question One: Which Parkrun provides the best marketing opportunity with the largest number of people?
+
+```{r q1, echo=FALSE} 
+# Clean and prepare
+clean_data <- parkrun_df %>%
+  mutate(
+    parkrun = as.character(parkrun),
+    name_id = as.character(name_id),
+    week = as.factor(week),
+    week_num = suppressWarnings(as.numeric(as.character(week))),
+    is_unknown = is.na(name_id) | name_id == "UNK"
+  ) %>%
+  filter(!is.na(parkrun), !is.na(week))
+
+# Each distinct runner represents one potential audience member.
+# Count both unique runners and total finishes for comparison.
+q1_summary <- clean_data %>%
+  group_by(parkrun) %>%
+  summarise(
+    total_finishes   = n(),
+    unique_runners   = n_distinct(name_id[!is_unknown]),
+    unknown_finishes = sum(is_unknown),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(unique_runners))
+
+print("Q1: Unique runners and total finishes per Parkrun")
+print(q1_summary)
+
+# Bar chart – Unique runners (preferred marketing metric)
+p_q1_unique <- ggplot(q1_summary,
+                      aes(x = reorder(parkrun, unique_runners),
+                          y = unique_runners)) +
+  geom_col(fill = "#4C9F70", alpha = 0.9) +
+  geom_text(aes(label = unique_runners), hjust = -0.15, size = 3) +
+  coord_flip() +
+  labs(title = "Unique Runners by Parkrun",
+       subtitle = "Each unique identifiable runner counts once (excludes UNK)",
+       x = "Parkrun", y = "Number of Unique Runners") +
+  theme_minimal(base_size = 12) +
+  expand_limits(y = max(q1_summary$unique_runners, na.rm = TRUE) * 1.1)
+
+print(p_q1_unique)
+
+# Bar chart – Total finishes (shows general activity)
+p_q1_finishes <- ggplot(q1_summary,
+                        aes(x = reorder(parkrun, total_finishes),
+                            y = total_finishes)) +
+  geom_col(fill = "#4472C4", alpha = 0.9) +
+  geom_text(aes(label = total_finishes), hjust = -0.15, size = 3) +
+  coord_flip() +
+  labs(title = "Total Finishes by Parkrun",
+       subtitle = "All appearances, including repeat visits",
+       x = "Parkrun", y = "Total Finishes") +
+  theme_minimal(base_size = 12) +
+  expand_limits(y = max(q1_summary$total_finishes, na.rm = TRUE) * 1.1)
+
+print(p_q1_finishes)
+
+# Summary output
+if (nrow(q1_summary) > 0) {
+  top <- q1_summary %>% slice_max(unique_runners, n = 1, with_ties = FALSE)
+  cat(sprintf("\\nBest marketing opportunity: %s (%d unique runners)\\n",
+              top$parkrun, top$unique_runners))
+}
+```
+
+## Question Two: Do new people come each week or is it always the same people?
+
+```{r Q2, echo=FALSE}
+# Mark each runner’s first appearance
+first_seen <- clean_data %>%
+  filter(!is_unknown) %>%
+  arrange(name_id, week_num) %>%
+  group_by(name_id) %>%
+  summarise(first_week_num = suppressWarnings(min(week_num, na.rm = TRUE)),
+            .groups = "drop")
+
+q2_df <- clean_data %>%
+  left_join(first_seen, by = "name_id") %>%
+  mutate(is_global_new = !is_unknown & week_num == first_week_num)
+
+# Summarise new vs returning runners by week
+q2_weekly <- q2_df %>%
+  group_by(week) %>%
+  summarise(
+    new_runners       = sum(is_global_new, na.rm = TRUE),
+    returning_runners = sum(!is_unknown & !is_global_new, na.rm = TRUE),
+    total_runners     = sum(!is_unknown, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(as.numeric(as.character(week))) %>%
+  mutate(percent_new = if_else(total_runners > 0,
+                               100 * new_runners / total_runners, NA_real_))
+
+print("Q2: Weekly new vs returning runners (global first definition)")
+print(q2_weekly)
+
+# Check for a 'First_timer' column (optional)
+first_timer_cols <- names(q2_df)[
+  stringr::str_detect(names(q2_df), regex("first", ignore_case = TRUE)) &
+    stringr::str_detect(names(q2_df), regex("timer", ignore_case = TRUE))
+]
+
+if (length(first_timer_cols) > 0) {
+  ft_col <- first_timer_cols[1]
+  message(sprintf("Detected First-timer column: %s", ft_col))
+  
+  q2_weekly_ft <- q2_df %>%
+    mutate(is_event_first_timer = as.logical(.data[[ft_col]])) %>%
+    group_by(week) %>%
+    summarise(
+      first_timer_runners = sum(is_event_first_timer, na.rm = TRUE),
+      total_runners = sum(!is_unknown, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    mutate(percent_first_timer = if_else(total_runners > 0,
+                                         100 * first_timer_runners / total_runners, NA_real_))
+  print("Q2 (event-level): Weekly first-timers based on data flag")
+  print(q2_weekly_ft)
+}
+
+# Bar chart – New vs returning each week
+q2_long <- q2_weekly %>%
+  select(week, new_runners, returning_runners) %>%
+  pivot_longer(-week, names_to = "Type", values_to = "Count") %>%
+  mutate(Type = recode(Type,
+                       new_runners = "New Runners (first appearance)",
+                       returning_runners = "Returning Runners"))
+
+p_q2 <- ggplot(q2_long, aes(x = week, y = Count, fill = Type)) +
+  geom_col(alpha = 0.9) +
+  labs(title = "New vs Returning Runners by Week",
+       subtitle = "Global first-time definition; excludes UNK",
+       x = "Week", y = "Runner Count", fill = NULL) +
+  theme_minimal(base_size = 12)
+
+print(p_q2)
+```
+
+## Question Three: Do people move between Parkruns? How does this affect advertising?
+
+In order to determine whether or not runners attend different Parkruns, we can simply count the number of Parkrun locations each runner has been to in the past 11 weeks. However, due to unidentifiability, we cannot include any unknown runners in this question.
+
+```{r people mixing, echo=FALSE}
+# For each runner, count the number of parkruns they have been to
+location_counts <- parkrun_df %>%
+  group_by(name_id) %>%
+  filter(name_id != "UNK") %>% # Remove unknown runners
+  summarise(num_parkruns = n_distinct(parkrun)) %>%
+  arrange(desc(num_parkruns))
+
+# Summarise the proportion of people who having gone to different parkruns
+location_summary <- location_counts %>%
+  summarise(
+    total_runners = n(),
+    multi_parkrun_runners = sum(num_parkruns > 1),
+    percent_multi = 100 * mean(num_parkruns > 1)
+  )
+
+# Table showing the summary of how many runners have attended other parkruns
+location_summary %>%
+  kbl(
+    col.names = c("Total Runners", "Mixed Runners", "Percentage of Mixed Runners"), 
+    caption = "Proportion of runners who have attended a different parkrun",
+    booktabs = TRUE,
+    digits = 2
+    ) %>%
+  kable_styling(latex_options = c("striped", "scale_down"))
+
+# Plot counts of people who attended different numbers of parkrun locations
+location_counts %>%
+  ggplot(aes(x=num_parkruns)) +
+  geom_bar(fill="steelblue") +
+  geom_text(stat="count", aes(label = after_stat(count)), vjust = -0.5) +
+  scale_x_continuous(breaks = 1:7) +
+  theme_classic() +
+  labs(x = "Number of Parkruns Attended", 
+       y = "Count",
+       title = "Figure 2. Counts of Parkruns Attended")
+```
+
+The above table (Figure 1) shows that there is a significant number of runners who have attended Parkruns at mulitple locations (26.6%), or about 1200 runners out of 4600. However, Figure 2 shows that the vast majority of runners have only attended events at one Parkrun location, with very few reaching out to others.
+
+However, this 26% overlap means that advertising across all locations is not going to be particularly budget effective, as advertisements will end up being displayed to people who have already bought Puma products. Therefore, advertising across fewer Parkrun locations can be a more economical option, as it would allow for the same effective advertisement reach, at a lower cost when compared to advertising at all locations.
+
+## Question Four: Where do elite runners like to run?
+
+## Question Five: What locations feature the most consistent runners?
+
+## Question Six: Does distance between Parkruns affect how much mixing occurs?
+
+```{r mixing vs distance, echo=FALSE}
+# Create a data frame to store coordinates of each Parkrun
+# Uses Google Maps coordinates
+parkrun_coords <- data.frame(
+  parkrun_lbl = c("Broadpark", # Used for labelling parkruns on maps
+           "Foster", 
+           "Hagley Park", 
+           "Halswell Quarry", 
+           "Pegasus", 
+           "Riverlution", 
+           "Scarborough"),
+  parkrun_raw = c("broadpark", # Used for joining with other data frames
+           "foster", 
+           "hagley", 
+           "halswellquarry", 
+           "pegasus", 
+           "riverlution", 
+           "scarborough"),
+  lat = c(-43.48407765955925, # Latitude coordinates
+          -43.60662280393161, 
+          -43.528411796120665, 
+          -43.59913104444619,
+          -43.31040735466971,
+          -43.52080699964801,
+          -43.57286627879577),
+  lng = c(172.72225771008866, # Longitude coordinates
+          172.387170265916247, 
+          172.622954938927, 
+          172.5800077082442, 
+          172.69504267525784, 
+          172.65959254077748, 
+          172.76978873320155)
+)
+
+# Convert data frame to sf object
+# Changes coordinate system to ensure measurements are in metres
+parkrun_coords_sf <- st_as_sf(parkrun_coords,
+                              coords = c("lng", "lat"),
+                              crs = 4326) %>%
+  st_transform(crs = 2193)   # NZTM (New Zealand Transverse Mercator)
+
+# Create a distance matrix that shows distances between each pair of parkruns
+parkrun_dist <- st_distance(parkrun_coords_sf)
+
+# Change row and column names to be parkrun locations
+rownames(parkrun_dist) <- parkrun_coords$parkrun_raw
+colnames(parkrun_dist) <- parkrun_coords$parkrun_raw
+
+# Convert distance matrix back to a data frame, such that it can be joined
+# with a mixing score data frame
+distance_df <- as.data.frame(as.table(as.matrix(parkrun_dist))) %>%
+  rename(from = Var1, to = Var2, distance_m = Freq) %>%
+  mutate(distance_km = as.numeric(distance_m/1000))
+
+# Filter distance_df for irrelevant or repeat data (A to A or A to B and B to A)
+# Does this by determining the pair of locations alphabetically, then only selecting
+# distinct pairs. This is done for joining purposes
+distance_df <- distance_df %>%
+  filter(from != to) %>%
+  mutate(pair = map2_chr(from, to, ~ paste(sort(c(.x, .y)), collapse = " - "))) %>%
+  distinct(pair, .keep_all = TRUE)
+
+# For each runner who has attended multiple parkruns,
+# summarise which parkruns they attended.
+# Uses suppressMessages to silence join output
+runner_locations <- suppressMessages(left_join(parkrun_df, location_counts)) %>%
+  group_by(name_id) %>%
+  filter(num_parkruns > 1) %>%
+  summarise(parkruns = paste0(unique(parkrun), collapse=", "))
+
+# Create a data frame that shows the pairs of locations a runner connects
+# Used to determine how much mixing occurs between these locations
+mixing_pairs <- runner_locations %>%
+  mutate(parkrun_list = strsplit(parkruns, ",\\s*")) %>%
+  unnest(parkrun_list) %>%
+  group_by(name_id) %>%
+  reframe(
+    pair = combn(sort(unique(parkrun_list)), 2, FUN = paste, collapse = " - ", simplify = TRUE)
+    ) %>%
+  unnest(pair)
+
+# Compute a mixing score for each pair of locations
+mixing_score <- mixing_pairs %>%
+  count(pair, name = "mixing_score")
+
+# Join mixing_score and distance_df to get an analysable data frame
+# Select relevant data (pair, distance in km, and mixing score)
+# Uses suppressMessages to remove any output
+distance_mixing <- suppressMessages(left_join(distance_df, mixing_score)) %>%
+  select(pair, distance_km, mixing_score)
+
+# Create a LOESS regression model, since the data is non-normal, therefore a 
+# non-parametric model may work best.
+distance_mixing_model <- loess(mixing_score ~ distance_km, data = distance_mixing)
+
+# Visualize distance against mixing score
+distance_mixing %>%
+  ggplot(aes(x=distance_km, y=mixing_score)) +
+  geom_point() +
+  geom_smooth() +
+  theme_classic() +
+  labs(x = "Distance (km)", 
+       y = "Mixing Score",
+       title = "Figure 3. Mixing Score vs. Distance")
+
+# Create a map to visualise locations
+leaflet(parkrun_coords) %>%
+  addTiles() %>%
+  setView(lng = 172.6366, lat = -43.5320, zoom = 9) %>%
+  addMarkers(~lng, ~lat, popup = ~parkrun_lbl) %>%
+  addProviderTiles(providers$Stadia.Outdoors)
+```
+
+# Summary and Conclusion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

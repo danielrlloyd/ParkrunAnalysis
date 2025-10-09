@@ -26,7 +26,6 @@ Scripts: 00_clean.R - Combining every data file, and cleaning for Parkrun, Week,
 
 Stakeholder Report: Created a format for the stakeholder report. Answered all of question three, and question six.
 
-
 # Methodology
 
 ## Data Dictionary 
