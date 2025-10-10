@@ -8,6 +8,8 @@ suppressPackageStartupMessages({
   library(dplyr); library(readr); library(stringr); library(tidyr)
 })
 
+source("00_clean.R")
+
 # --- Require 00_clean.R output ---
 if (!exists("parkrun_df", inherits = TRUE)) {
   stop("No `parkrun_df` found. Run source('00_clean.R') first.")
@@ -105,8 +107,5 @@ df <- df %>%
 df_out <- df %>%
   select(-Time_token, -.min_secs_group) %>%
   select(dplyr::everything(), Pb_time, First_timer)
-
-out_path <- file.path(getwd(), "01_clean_time_pb_first.csv")
-readr::write_csv(df_out, out_path)
 
 parkrun_df <- df_out

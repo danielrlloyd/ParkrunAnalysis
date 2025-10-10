@@ -68,8 +68,7 @@ clean_data <- parkrun_df %>%
   filter(!is.na(parkrun), !is.na(week))
 ```
 
-
-
+This question surrounds determining which Parkrun location generally has the most runners, and assumes that all runners will be a potential customer.
 
 ```{r unique-runner-table, echo=FALSE}
 # Each distinct runner represents one potential audience member.
@@ -93,9 +92,9 @@ q1_summary %>%
     digits = 2
     ) %>%
   kable_styling(latex_options = c("striped", "scale_down", "hold_position"))
-
-q1_summary
 ```
+
+Table 1 shows that over the past 11 weeks, the Hagley Parkrun has had the highest number of unique runners out of all Parkrun locations at 2306.
 
 ```{r unique-runner-chart, echo=FALSE}
 
@@ -106,14 +105,16 @@ p_q1_unique <- ggplot(q1_summary,
   geom_col(fill = "#4C9F70", alpha = 0.9) +
   geom_text(aes(label = unique_runners), hjust = -0.15, size = 3) +
   coord_flip() +
-  labs(title = "Unique Runners by Parkrun",
-       subtitle = "Each unique identifiable runner counts once (excludes UNK)",
+  labs(title = "Chart 1. Unique Runners by Parkrun",
+       subtitle = "Each uniquely identifiable runner counts once",
        x = "Parkrun", y = "Number of Unique Runners") +
   theme_minimal(base_size = 12) +
   expand_limits(y = max(q1_summary$unique_runners, na.rm = TRUE) * 1.1)
 
 print(p_q1_unique)
 ```
+
+Following on from Table 1, Chart 1, as seen above, also shows that Halgey is the most popular Parkrun, followed by Riverlution, and Scarborough. As such, advertising at these locations would be a very cost effective way of marketing Puma products to a very large audience.
 
 ## Question Two: Do new people come each week or is it always the same people?
 
@@ -146,15 +147,19 @@ q2_weekly <- q2_df %>%
                                100 * new_runners / total_runners, NA_real_))
 
 # print("Q2: Weekly new vs returning runners (global first definition)")
-q2_weekly %>%
-  kbl(
-    col.names = c("Week", "New Runners", "Returning Runners", "Total Runners", "Percentage of New Runners"), 
-    caption = "Weekly new vs returning runners across every Parkrun",
-    booktabs = TRUE,
-    digits = 2
-    ) %>%
-  kable_styling(latex_options = c("striped", "scale_down", "hold_position"))
+# q2_weekly %>%
+#   kbl(
+#     col.names = c("Week", "New Runners", "Returning Runners", "Total Runners", "Percentage of New Runners"), 
+#     caption = "Weekly new vs returning runners across every Parkrun",
+#     booktabs = TRUE,
+#     digits = 2
+#     ) %>%
+#   kable_styling(latex_options = c("striped", "scale_down", "hold_position"))
 ```
+
+We can determine whether or not if new people come each week, by counting the number of First Timers that have ran in any Parkrun over the past 11 weeks.
+
+Firstly, we have to define First Timer. A First Timer is a runner who has never ran at a particular Parkrun location before attending an event at it. As such, First Timers may have never ran a Parkrun before at all, or may have ran at other locations, but not this one.
 
 ```{r , echo = FALSE, message= FALSE}
 # Check for a 'First_timer' column (optional)
@@ -165,7 +170,6 @@ first_timer_cols <- names(q2_df)[
 
 if (length(first_timer_cols) > 0) {
   ft_col <- first_timer_cols[1]
-  message(sprintf("Detected First-timer column: %s", ft_col))
   
   q2_weekly_ft <- q2_df %>%
     mutate(is_event_first_timer = as.logical(.data[[ft_col]])) %>%
@@ -177,7 +181,7 @@ if (length(first_timer_cols) > 0) {
     ) %>%
     mutate(percent_first_timer = if_else(total_runners > 0,
                                          100 * first_timer_runners / total_runners, NA_real_))
-  print("Q2 (event-level): Weekly first-timers based on data flag")
+
   q2_weekly_ft %>%
     kbl(
       col.names = c("Week", "First Timers", "Total Runners", "Percentage of First Timers"), 
@@ -189,24 +193,30 @@ if (length(first_timer_cols) > 0) {
 }
 ```
 
-```{r}
+Table 2, as seen above, shows the number of First Timers that have ran at every Parkrun over the past 11 weeks. The total number of First Timers who have ran in the past 11 weeks is generally about 20% of all of all runners who ran that week. This generally suggests that most runners are repeats.
+
+```{r, echo=FALSE}
 # Bar chart – New vs returning each week
-q2_long <- q2_weekly %>%
-  select(week, new_runners, returning_runners) %>%
+q2_long <- q2_weekly_ft %>%
+  select(week, first_timer_runners, total_runners) %>%
   pivot_longer(-week, names_to = "Type", values_to = "Count") %>%
   mutate(Type = recode(Type,
-                       new_runners = "New Runners (first appearance)",
-                       returning_runners = "Returning Runners"))
+                       first_timer_runners = "First Timers",
+                       total_runners = "Total Runners"))
 
 p_q2 <- ggplot(q2_long, aes(x = week, y = Count, fill = Type)) +
   geom_col(alpha = 0.9) +
-  labs(title = "New vs Returning Runners by Week",
-       subtitle = "Global first-time definition; excludes UNK",
+  labs(title = "Chart 2. New vs Returning Runners by Week",
+       subtitle = "Data based on runners being First Timers",
        x = "Week", y = "Runner Count", fill = NULL) +
   theme_minimal(base_size = 12)
 
-print(p_q2)
+p_q2
 ```
+
+Chart 2 above corroborates this hypothesis, and shows that the proportion of First Timers to Repeat Runners is generally consistent.
+
+In terms of marketing, this means that there is potential for new customers all of the time, however advertising for prolonged periods of time may not be beneficial, as many runners may already be customers due to advertising at prior events.
 
 \newpage
 
@@ -631,11 +641,20 @@ The above bar chart (Figure 4), also shows this correlation, but also labels eac
 
 As for how this affects advertising, this allows for more control over audience overlap. Given the amount of mixing between the Hagley and Riverlution parkruns, advertising at just one of these parkruns would minimise the amount of overlap and spending, without reducing the effectiveness of the advertisements. However, given the amount of distance between the Foster and Pegasus parkruns, advertising at only one location would only harm any marketing efforts. 
 
-As such, for pairs of parkruns with high amounts of mixing, advertising at just one location would be the best option, preferably the parkrun which is generally more popular/has the most runners.
+As such, for pairs of parkruns with high amounts of mixing, advertising at just one location would be the best option, preferably the parkrun which is generally more popular/has the most runners (advertise at Hagley over Riverlution).
 
 # Summary and Conclusion
 
+Pooling all of our knowledge that has been collected together, we can come to the following conclusions about how to maximise the effect of advertising and marketing.
 
+1) Hagley is the most popular Parkrun, and therefore provides the best marketing opportunity to advertise to the largest number of people.\
+2) A lot of runners are repeat runners, so many may already be customers, and are less likely to buy any Puma products.\
+3) There is mixing between Parkruns. This means that there is audience overlap, so advertising at every location will have diminishing returns on investment and effort.\
+4) Hagley is the most suitable place to advertise when considering elite runners.\
+5) Hagley is also the most suitable place to advertise for consistent runners.\
+6) The mixing of runners between locations is dependent on distance. Prioritise popular locations, that are far away from each other.
+
+We can see that Hagley is by far the best place to focus marketing efforts for the most diverse range of people, hosting the largest number of consistent, elite, and casual runners. Since Hagley is also so popular, marketing at nearby locations will have reduced impact in comparison to advertising at more distant locations, such as Foster or Pegasus. 
 
 
 
