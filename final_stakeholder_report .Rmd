@@ -116,6 +116,8 @@ print(p_q1_unique)
 
 Following on from Table 1, Chart 1, as seen above, also shows that Halgey is the most popular Parkrun, followed by Riverlution, and Scarborough. As such, advertising at these locations would be a very cost effective way of marketing Puma products to a very large audience.
 
+\newpage
+
 ## Question Two: Do new people come each week or is it always the same people?
 
 ```{r new-and-repeated-runners-table, echo=FALSE}
@@ -259,13 +261,14 @@ location_counts %>%
   theme_classic() +
   labs(x = "Number of Parkruns Attended", 
        y = "Count",
-       title = "Figure 2. Counts of Parkruns Attended")
+       title = "Chart 2. Counts of Parkruns Attended")
 ```
 
-The above table (Table 4) shows that there is a significant number of runners who have attended Parkruns at mulitple locations (26.6%), or about 1200 runners out of 4600. However, Figure 2 shows that the vast majority of runners have only attended events at one Parkrun location, with very few reaching out to others.
+The above table (Table 3) shows that there is a significant number of runners who have attended Parkruns at mulitple locations (26.6%), or about 1200 runners out of 4600. However, Chart 2 shows that the vast majority of runners have only attended events at one Parkrun location, with very few reaching out to others.
 
 However, this 26% overlap means that advertising across all locations is not going to be particularly budget effective, as advertisements will end up being displayed to people who have already bought Puma products. Therefore, advertising across fewer Parkrun locations can be a more economical option, as it would allow for the same effective advertisement reach, at a lower cost when compared to advertising at all locations.
 
+\newpage
 
 ## Question Four: If Puma want to target elite runners, where should they focus their efforts?
 ```{r prepare-data-for-elite-classification, echo=FALSE, fig.alt="center", message=FALSE, include=FALSE}
@@ -392,6 +395,8 @@ p2
 ```
 To make Puma campaign targeting elite runners effective, Hagley parkrun is the most suitable place. Second place would be Scarborough then Pegasus.
 
+\newpage
+
 ## Question Five: What locations feature the most consistent runners?
 ```{r collect-consistent-runner, echo=FALSE, include=FALSE, message=FALSE, fig.alt= "center"}
 # Puma believe more consistent runners have better potential as customers, how many runners are consistent and is consistency different across locations?
@@ -496,10 +501,11 @@ print(p3)
 ```
 If Puma want to reach out the most number of consistent runners, Hagley will be the best option. Although, the percentage of the consistent runners and the average weeks participated of each runner in Pegasus and Foster are high, the number of highly consistent runners are just a half of Hagley. On the other hand, the number of consistent runners in Riverlution is promising if Puma want to focus on consistent runners as the potential customer.  
 
+\newpage
 
 ## Question Six: Does distance between Parkruns affect how much mixing occurs?
 
-```{r mixing-vs-distance, echo=FALSE}
+```{r mixing-vs-distance, echo=FALSE, message=FALSE}
 # Create a data frame to store coordinates of each Parkrun
 # Uses Google Maps coordinates
 parkrun_coords <- data.frame(
@@ -618,11 +624,11 @@ distance_mixing %>%
   theme_classic() +
   labs(x = "Distance (km)", 
        y = "Mixing Score",
-       title = "Figure 3. Mixing Score vs. Distance")
+       title = "Chart 3. Mixing Score vs. Distance")
 
 ```
 
-As seen above, Figure 3 shows that there is a negative correlation between Distance and Mixing Score. In other words, as the distance between parkruns increases, the amount of mixing decreases.
+As seen above, Chart 3 that there is a negative correlation between Distance and Mixing Score. In other words, as the distance between parkruns increases, the amount of mixing decreases.
 
 ```{r mixing bar chart, echo=FALSE}
 distance_mixing %>%
@@ -633,15 +639,17 @@ distance_mixing %>%
   theme_classic() +
   labs(x = "Pairs of Parkruns by distance", 
        y = "Mixing Score",
-       title = "Figure 4. Parkrun Pairs and Mixing Scores arranged by distance") +
+       title = "Chart 4. Parkrun Pairs and Mixing Scores arranged by distance") +
   guides(x=guide_axis(angle=60))
 ```
 
-The above bar chart (Figure 4), also shows this correlation, but also labels each parkrun pair with the distance between them. As is seen in the chart, the Hagley and Riverlution parkruns are very close (only 3km apart), and as such, receive a very large amount of mixing.
+The above bar chart (Chart 4), also shows this correlation, but also labels each parkrun pair with the distance between them. As is seen in the chart, the Hagley and Riverlution parkruns are very close (only 3km apart), and as such, receive a very large amount of mixing.
 
 As for how this affects advertising, this allows for more control over audience overlap. Given the amount of mixing between the Hagley and Riverlution parkruns, advertising at just one of these parkruns would minimise the amount of overlap and spending, without reducing the effectiveness of the advertisements. However, given the amount of distance between the Foster and Pegasus parkruns, advertising at only one location would only harm any marketing efforts. 
 
 As such, for pairs of parkruns with high amounts of mixing, advertising at just one location would be the best option, preferably the parkrun which is generally more popular/has the most runners (advertise at Hagley over Riverlution).
+
+\newpage
 
 # Summary and Conclusion
 
