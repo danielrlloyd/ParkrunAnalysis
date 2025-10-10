@@ -30,24 +30,34 @@ In this study, we analysed 11 weeks of Parkrun events across 7 locations in and 
 
 **Hoang Anh Nguyen:**
 
-Team leader, set up the project
-Srcipts: change-to-csv-file.py, 03_anonymise.R - cleaning 'Parkrunner' column, 
+Role: Team leader
+
+Srcipts: change-to-csv-file.py, 03_anonymise.R - cleaning 'Parkrunner' column 
 
 Technical report: Write how to clean 'Parkrunner' column, Question 4 and 5 sections
 
 Stakeholder: Question 4 and 5 sections, responsible for the final of stakeholder report
 
+Github: set up github and tidy up the 'main' branch
+
+Other contribution: set up the project, Trello board
+
 Wrote Readme
 
 **Daniel Lloyd:**
 
+Role: Member
+
 Scripts: 00_clean.R - Combining every data file, and cleaning for Parkrun, Week, Gender, and Position_by_gender.
 
-Reports: Created a format for the stakeholder report and answered all of question three, and question six. Consolidated everyone's work onto a singular stakeholder, and technical report.
+Reports: Created a format for the stakeholder report and answered all of question three, and question six. Consolidated everyone's work onto a singular stakeholder, and technical report,
+Finalise report
 
 Github: Created different branches on the repository, such that the work of others was not overwritten.
 
 **Guo Tang:**
+
+Role: Member
 
 Scripts: 01_clean_time_pb_first.R – Cleaned and preprocessed the raw Parkrun data,includes converting the time format into seconds, creating Pb Time column, finding the individual's best performance, and defining the logic for identifying the "First timer".
 
@@ -174,7 +184,7 @@ By taking these steps, we were able to produce a tidy dataset which contained al
 
 ## Key Questions
 
-### Question one 
+### Question 1 
 
 Question: Which Parkrun provides the best marketing opportunity with the largest number of people ?
 
@@ -246,7 +256,7 @@ Distances (Q6): The issue with calculating if distance predicts mixing between t
 
 Non-Normal Data (Q6): The distance_mixing data frame was not Normal data, and was heavily right-skewed. As such, I could not fit a typical linear model, and had to use a Gamma distribution, which produced the best results in terms of residuals and QQ-plot. However, by most measures, these plots would still be concerning, but the correlation between distance and mixing score is still clear.
 
-```{r normality prep, echo=FALSE}
+```{r normality prep, echo=FALSE, eval=FALSE, message=FALSE}
 # For each runner, count the number of parkruns they have been to
 location_counts <- parkrun_df %>%
   group_by(name_id) %>%
@@ -353,7 +363,7 @@ distance_mixing <- suppressMessages(left_join(distance_df, mixing_score)) %>%
   select(pair, distance_km, mixing_score)
 ```
 
-```{r normality plots, eval=FALSE}
+```{r normality plots, echo=FALSE, eval=FALSE, message=FALSE}
 # Create a generalized linear model using a Gamma distribution
 # Gamma distributions work for skewed data, and produces more acceptable results
 distance_mixing_model <- glm(mixing_score ~ distance_km, data = distance_mixing, family = Gamma)
@@ -366,18 +376,11 @@ plot(distance_mixing_model, which = 4)
 
 ## Future Improvements and Development
 
-**Question 1:**  
-If I had more data, I’d look at extra factors like location size, weather, and population to see what makes some Parkruns attract more people than others.  
-It would also help to include demographic data so Puma could target the right type of customers.  
-Creating an interactive dashboard would make it easier to compare locations visually.
+If I had more data, I’d look at extra factors like location size, weather, and population to see what makes some Parkruns attract more people than others.It would also help to include demographic data so Puma could target the right type of customers.Creating an interactive dashboard would make it easier to compare locations visually.
 
-**Question 2:**  
-To understand participation better, a longer time period would be useful to see long-term trends instead of just 11 weeks.  
-Making sure every runner has a consistent ID would also make the results more reliable.  
-With more data, I could even build a simple model to predict when new runners are most likely to appear.
+To understand participation better, a longer time period would be useful to see long-term trends instead of just 11 weeks.Making sure every runner has a consistent ID would also make the results more reliable. With more data, I could even build a simple model to predict when new runners are most likely to appear.
 
-**Imputation:**
-Imputation was a very difficult challenge to tackle. This was largely due to the fact that it was very difficult to determine a large number of variables based on the data provided. While there were some obvious options, such as imputing Time through the use of Nearest Neighbour Imputation, none of the key questions we set out to answer really depended heavily on Time. But then comes the issue of not being able to tell unknown runners apart from each other, as there were very few identifying features within those unknown observations. As such, we generally stuck to using only the Complete Cases of the dataset, those being the observations without an "UNK" identifier. Due to this, we likely lost a significant amount of statistical power. 
+Imputation was a very difficult challenge to tackle. This was largely due to the fact that it was very difficult to determine a large number of variables based on the data provided. While there were some obvious options, such as imputing Time through the use of Nearest Neighbour Imputation, none of the key questions we set out to answer really depended heavily on Time. But then comes the issue of not being able to tell unknown runners apart from each other, as there were very few identifying features within those unknown observations. As such, we generally stuck to using only the Complete Cases of the dataset, those being the observations without an "UNK" identifier. Due to this, we likely lost a significant amount of statistical power.
 
 
 
