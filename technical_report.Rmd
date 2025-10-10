@@ -195,14 +195,16 @@ Then I calculated the total number of runners and how many were new in each week
 I made two plots — one showing how many new runners joined each week and another showing the percentage of new participants.  
 This helped me understand if Parkrun keeps attracting new people or mainly has a stable, repeating group.
 
-### Question Three (Daniel)
+### Question 3
 
 Question: Do people move between Parkruns? Does this mean if you advertise at fewer places you eventually
 see people from other locations?
 
-In order to answer this question, I went about determining how many locations different runners have been to. Results showed that 26.6% of runners have gone to another location. I then used a bar chart to determine how many people have been to different numbers of Parkruns. 
+In order to answer this question, I went about determining how many locations different runners have been to. I did this by grouping the data by `name_id`, and then summarising by the number of distinct Parkruns that runner attended `summarise(num_parkruns = n_distinct(parkrun))` to create a `location_counts` data frame.
 
-My interpretation of the second half of the question, is that it has to do with audience overlap. Essentially, if runners had bought Puma products due to advertising at one location, would those customers appear in other locations, where the advertisements would have little to no effect? I came to the conclusion that more audience overlap means that advertising at more locations would have diminishing returns on the financial investment, and recommended advertising at more popular locations.
+On top of this, another summary was made `location_summary`, which was used to produce Table 4. This summarises the total unique runners, the runners who have gone to different Parkrun locations (Mixed runners), and a percentage of mixed runners across the dataset.
+
+Results showed that 26.6% of runners have gone to another location. A bar chart could then be used to show the number of runners going to different numbers of Parkruns, for a less technical visualisation of this data.
 
 ### Question 4
 Question: If Puma want to target elite runners, where should they focus their efforts?
@@ -221,14 +223,14 @@ In order to identify consistent runner, I used 'weeks_participated' variable com
 
 Then I calculated the sum of consistent runners and the percentage of consistent runner in each parkrunn to compare with each other.
 
-### Question Six (Daniel)
+### Question 6
 
 Question: Does the distance between Parkrun locations predict the amount of mixing of people between those
 locations?
 
-In order to answer this question, I first obtained the geographical coordinates for each Parkrun. Using the sf and leaflet libraries, I could then obtain the distances between each location (straight line, point-to-point), as a matrix, which I converted to a data frame.
+In order to answer this question, I first obtained the geographical coordinates for each Parkrun. Using the `sf` and `leaflet` libraries, I could then obtain the distances between each location (straight line, point-to-point), as a matrix, which I converted to a data frame.
 
-I then created a new df mixing_pairs, which connected every Parkrun to every other Parkrun in pairwise relationships. Using this, and a runner_locations summary to determine the locations each runner has been to, I obtained a sort of mixing score; the number of runners that have been to both locations in a pair. Using the mixing score, and joining it with the distance data frame to obtain a data frame with a distance and a score for each pair of Parkruns (distance_mixing). I could then create a predictive model, using glm() with family = Gamma.
+I then created a new df mixing_pairs, which connected every Parkrun to every other Parkrun in pairwise relationships. Using this, and a `runner_locations` summary to determine the locations each runner has been to, I obtained a mixing score; the number of runners that have been to both locations in a pair. Using the mixing score, and joining it with the distance data frame to obtain a data frame with a distance and a score for each pair of Parkruns (`distance_mixing`). I could then create a predictive model, using `glm()` with `family = Gamma`.
 
 ## Limitations of the Study
 
