@@ -86,9 +86,7 @@ clean_data <- parkrun_data %>%
   )
 ```
 
-In order to target elite runner for the marketing campaign, we can look at the "Age grade" of each runners. 
-
-"Age grade" is a percentage that compares runner's time to the world record for runner's age and gender. 
+In order to target elite runner for the marketing campaign, we can look at the "Age grade" of each runners. "Age grade" is a percentage that compares runner's time to the world record for runner's age and gender. 
 
 This percentage could be understood as:
 - <50% = beginner 
@@ -125,7 +123,7 @@ elite_analysis_overall %>%
     digits = 2
   )
 ```
-It's noticeable to find that the Hagley parkrun has an outstanding numbers of elite runner but Scarborough parkrun has the highest elite runner percentage among these parkruns. 
+It's noticeable to find that the Hagley parkrun has an outstanding numbers of elite runner but Scarborough parkrun has the highest elite runner percentage and highest average grade among these parkruns. 
 
 
 ```{r elite-runner-table, echo=FALSE, message=FALSE, include=FALSE}
@@ -155,7 +153,7 @@ elite_analysis_gender %>%
     digits = 2
   )
 ```
-
+Here is a bar chart to demonstrate the difference number of elite runners by location and gender. The number of men elite runners tend to double than the number of women elite runner in every parkruns. Hagley parkrun has the most both men and women elite runner, second is Scarborough, third is Peagsus.
 ```{r elite-runner-visualisaion, echo=FALSE}
 
 # Bar chart: Number of elite runners by location and gender
@@ -178,6 +176,7 @@ p1 <- ggplot(elite_analysis_gender, aes(x = reorder(`Parkrun Location`, -`Elite 
 p1
 
 ```
+But if we look at the percentage distribution, Scarborough has the most percentage of men elite runner then Hagley and Pegasus. And the most percentage of women elite runner belongs to Hagley.  
 ```{r percentage-elite-runner-visualisation, echo=FALSE}
 # Bar chart: Percentage of elite runners by location and gender
 p2 <- ggplot(elite_analysis_gender, aes(x = reorder(`Parkrun Location`, -`Elite runners percentage`), y = `Elite runners percentage`, fill = Gender)) +
@@ -197,9 +196,13 @@ p2 <- ggplot(elite_analysis_gender, aes(x = reorder(`Parkrun Location`, -`Elite 
         legend.position = "top")
 p2
 ```
-## Question Five: Puma believe more consistent runners have better potential as customers, how many runners are consistent and is consistency different across locations?
+To make Puma campaign targeting elite runners effective, Hagley parkrun is the most suitable place. Second place would be Scarborough then Pegasus.
+
+## Question Five: What locations feature the most consistent runners?
 ```{r collect-consistent-runner, echo=FALSE, include=FALSE, message=FALSE, fig.alt= "center"}
-# 2.1 Identify consistent runners (appearing in multiple weeks)
+# Puma believe more consistent runners have better potential as customers, how many runners are consistent and is consistency different across locations?
+
+# Identify consistent runners (appearing in multiple weeks)
 runner_consistency <- clean_data %>%
   group_by(name_id, parkrun) %>%
   summarise(
@@ -216,9 +219,11 @@ runner_consistency <- clean_data %>%
       TRUE ~ "Occasional (1-2 weeks)"
     )
   )
-```
 
-table consistent
+runner_consistency
+```
+Another potential customers group is the consistent runners. The table shows the number of consistent runners group by location. Consistent runners would be recognized if they had attended from 3 to 4 weeks, we would consider highly consistent runners if they had attend from more than 5 weeks. And a runner joined 1 or 2 weeks would be considered as occasionally. 
+
 ```{r consistent-runner-table, echo=FALSE, include= TRUE}
 # Consistency summary by location
 consistency_by_location <- runner_consistency %>%
@@ -249,28 +254,9 @@ consistency_by_location %>%
   )
 
 ```
+There is no doubt that Hagley parkrun has the most number of highly and moderately consistent runners. Foster and Pegasus parkrun has the second and third of number of highly consistent runners consecutively. Scarborough only place the fourth in highly consistent runners but it has the second most of the moderately consistent runner. Also the number of moderately consistent runners in Riverlution parkun is quiet noticeable because the dataset for Riverlution is just 8 weeks in stead of 11 weeks like other parkrun but it has almost equal amount as Scarborough and Foster.
 
-```{r consistency-visualisation, echo=FALSE, include= TRUE }
-# Visualize consistency patterns
-# Consistency distribution by location
-p3 <- ggplot(consistency_by_location, 
-             aes(x = reorder(`Parkrun Location`, -`Average Weeks per Runner`), 
-                 y = `Average Weeks per Runner`)) +
-  geom_bar(stat = "identity", fill = "darkgreen", alpha = 0.8) +
-  geom_text(aes(label = round(`Average Weeks per Runner`, 1)), 
-            vjust = -0.5, size = 3) +
-  labs(
-    title = "Average Weeks Participation by Location",
-    subtitle = "Higher values indicate a more consistent runner base",
-    x = "Location",
-    y = "Average Weeks per Runner"
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-print(p3)
-```
-
+In the number aspect, Hagley has the most number of consitent runners but when it come to percentage, Pegasus parkrun has the most percentage of highly consistent runners. At the second and third place are Foster and Hagley consecutively.
 
 ```{r, echo=FALSE, include= TRUE}
 # Consistency level breakdown
@@ -292,11 +278,38 @@ p4 <- runner_consistency %>%
 
 p4
 ```
+And if we compare the average weeks participation among location, it has the same order of top 3.
+
+```{r consistency-visualisation, echo=FALSE, include= TRUE }
+# Visualize consistency patterns
+# Consistency distribution by location
+p3 <- ggplot(consistency_by_location, 
+             aes(x = reorder(`Parkrun Location`, -`Average Weeks per Runner`), 
+                 y = `Average Weeks per Runner`)) +
+  geom_bar(stat = "identity", fill = "darkgreen", alpha = 0.8) +
+  geom_text(aes(label = round(`Average Weeks per Runner`, 1)), 
+            vjust = -0.5, size = 3) +
+  labs(
+    title = "Average Weeks Participation by Location",
+    subtitle = "Higher values indicate a more consistent runner base",
+    x = "Location",
+    y = "Average Weeks per Runner"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+print(p3)
+```
+If Puma want to reach out the most number of consistent runners, Hagley will be the best option. Although, the percentage of the consistent runners and the average weeks participated of each runner in Pegasus and Foster are high, the number of highly consistent runners are just a half of Hagley. On the other hand, the number of consistent runners in Riverlution is promising if Puma want to focus on consistent runners as the potential customer.  
+
+
 
 
 ## Question Six: Does distance between Parkruns affect how much mixing occurs?
 
 # Summary and Conclusion
+ 
+
 
 
 
