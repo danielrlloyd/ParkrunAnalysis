@@ -199,3 +199,10 @@ Key Sections:
 - Reporting branch for reporting development
 
 Last updated: October 2025
+
+
+## Repository
+https://github.com/DATA422-DATA201-25S2/LAB_3_GROUP_7
+
+## Trello board
+https://trello.com/b/1sQj9BEy/data201-422-lab-3-group-7
