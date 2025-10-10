@@ -73,7 +73,16 @@ parkrun_df_cleaned <- parkrun_df %>%
   )
 
 # remove column 'parkrunner' and 'name' and 'week_num'
-parkrun_df_cleaned <- parkrun_df_cleaned %>% select(-parkrunner, -name, -Time)
+
+parkrun_df_cleaned <- parkrun_df_cleaned %>% 
+  select(-parkrunner, 
+         -name, 
+         -week_num, 
+         -race_milestone, 
+         -volunteer_milestone,
+         -name_id_numeric,
+         -parkruns_completed,
+         -Time)
 
 
 
@@ -82,6 +91,9 @@ parkrun_df_cleaned <- parkrun_df_cleaned %>%
   select(name_id, everything())
 
 
-#export csv file
+#export csv file, and gzip it
 write.csv(parkrun_df_cleaned,"clean-data.csv", row.names = FALSE)
+
+gzip("clean-data.csv")
 print ('CSV created Successfully :)')
+

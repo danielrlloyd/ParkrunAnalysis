@@ -9,6 +9,7 @@ library(tidyverse)
 library(purrr)
 library(readr)
 library(stringr)
+library(R.utils)
 
 # Read data files ==============================================================
 
@@ -52,7 +53,7 @@ for (file in data_files) {
   file_df <- file_df %>%
     mutate(parkrun = parkrun,
            week = week,
-           grade     = str_remove(`Age Group`, "^[A-Z]{1,2}[MW]\\d{1,2}(-\\d{2})?"), 
+           grade = str_remove(`Age Group`, "^[A-Z]{1,2}[MW]\\d{1,2}(-\\d{2})?"), 
            `Age Group` = str_extract(`Age Group`, "^[A-Z]{1,2}[MW]\\d{1,2}(-\\d{2})?"),
            position_by_gender = parse_number(Gender),
            Gender = substr(Gender, 1, 1)) %>%

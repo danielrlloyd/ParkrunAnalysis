@@ -249,4 +249,3 @@ p5 <- ggplot(weekly_participation, aes(x = week_num, y = weekly_runners, color =
   scale_x_continuous(breaks = 1:max(weekly_participation$week_num))
 
 print(p5)
-

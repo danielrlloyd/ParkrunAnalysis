@@ -1,0 +1,383 @@
+---
+title: "Techniques used for Parkrun Analysis"
+author: "Hoang Anh Nguyen, Daniel Lloyd, Guo Tang"
+date: "2025-10-01"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# General packages
+library(tidyselect)
+library(tidyverse)
+library(purrr)
+library(readr)
+library(stringr)
+library(kableExtra)
+library(leaflet)
+library(leaflet.extras)
+library(sf)
+library(crunch)
+
+parkrun_df <- read_csv("clean-data.csv.gz")
+```
+
+# Overview
+
+In this study, we analysed 11 weeks of Parkrun events across 7 locations in and around Christchurch/Otautahi. This study was commissioned by Puma Inc. for the purpose of determining marketing potential in these Parkruns, and developing and optimal marketing strategy. This study was conducted by Bad Ass Analytics Ltd. This document covers the technical aspects of our analysis, such as our assumptions of the data, how we went about answering the key questions, and 
+
+# Contributions
+
+**Hoang Anh Nguyen:**
+
+Team leader, set up the project
+Srcipts: change-to-csv-file.py, 03_anonymise.R - cleaning 'Parkrunner' column, 
+
+Technical report: Write how to clean 'Parkrunner' column, Question 4 and 5 sections
+
+Stakeholder: Question 4 and 5 sections, responsible for the final of stakeholder report
+
+Wrote Readme
+
+**Daniel Lloyd:**
+
+Scripts: 00_clean.R - Combining every data file, and cleaning for Parkrun, Week, Gender, and Position_by_gender.
+
+Reports: Created a format for the stakeholder report and answered all of question three, and question six. Consolidated everyone's work onto a singular stakeholder, and technical report.
+
+Github: Created different branches on the repository, such that the work of others was not overwritten.
+
+**Guo Tang:**
+
+Scripts: 01_clean_time_pb_first.R – Cleaned and preprocessed the raw Parkrun data,includes converting the time format into seconds, creating Pb Time column, finding the individual's best performance, and defining the logic for identifying the "First timer".
+
+Technical report: Completed the analysis for Question 1 and Question 2, created related figures, and wrote interpretation paragraphs.
+
+GitHub: Managed file updates and pushed cleaned datasets and scripts to the group GitHub repository.
+
+\newpage
+
+# Methodology
+
+## Data Dictionary 
+
+```{r data dictionary, echo=FALSE}
+# Define the Data Dictionary
+dictionary_def <- data.frame(
+  variable = c(
+    "Name ID",
+    "Parkrun",
+    "Week",
+    "Position",
+    "Position by Gender",
+    "Gender",
+    "Age Group",
+    "Grade",
+    "Club",
+    "Time Seconds",
+    "Time HMS",
+    "PB Time",
+    "First Timer",
+    "Parkruns Completed"
+  ),
+  data_type = c(
+    "String",
+    "String",
+    "Integer",
+    "Integer",
+    "Integer",
+    "Character",
+    "String",
+    "Float",
+    "String",
+    "Integer",
+    "Time",
+    "Time",
+    "Boolean",
+    "Integer"
+  ),
+  domain = c(
+    "",
+    "",
+    "Number between 1 and 11 (inclusive)",
+    "",
+    "",
+    "M or F",
+    "AB##-##",
+    "",
+    "",
+    "",
+    "",
+    "Less than or equal to Time HMS",
+    "",
+    ""
+  ),
+  desc = c(
+    "ID is obtained through encoding their name",
+    "The location in which a parkrun event takes place.",
+    "Each event for a given location is ordered 1 up to 11.",
+    "The position a runner achieved in a given race",
+    "The position a runner achieved as grouped by their gender",
+    "The biological sex of a runner",
+    "The age group of a runner",
+    "The grade a runner receives relative to their age",
+    "The club a runner may belong to (optional)",
+    "The time a runner completed the Parkrun in seconds",
+    "The time a runner completed the Parkrun in HH:MM:SS form",
+    "The personal best record set by a runner for that Parkrun location",
+    "A Boolean determining if this is a runners first time set for a location.",
+    "The number of parkruns a runner has completed, regardless of location."
+  ),
+  example = c(
+    "BEDLUG",
+    "Foster",
+    "3",
+    "8",
+    "5",
+    "F",
+    "VW40-44",
+    "74.46",
+    "Rolleston Road Runners",
+    "1200",
+    "20:00",
+    "17:54",
+    "FALSE",
+    "51"
+  )
+)
+
+# Table that represents the data dictionary
+dictionary_def %>%
+  kbl(
+    col.names = c("Variable", "Data Type", "Domain", "Description", "Example"), 
+    caption = "General Data Dictionary",
+    booktabs = TRUE,
+    digits = 2
+    ) %>%
+  kable_styling(latex_options = c("striped", "scale_down", "hold_position"))
+  
+```
+
+## Raw Data to Clean Data
+
+All of the data was stored in a separate file for each Parkrun, and each week, resulting in 74 files that needed to be combined together. Using a for loop to attach every data file to one global data frame, we could then perform cleaning on every observation simultaneuously.
+
+The first step of cleaning the raw data was to combine every individual data file together. We then made use of tidyverse methods, such as mutate() to separate columns which had multiple variables in the same column, such as Age Group and Grade. The Parkrun variable was obtained using the file name from each dataset, and similarly, the Week variable was calculated using iteration, resetting to 1 after the location a Parkrun took place changes.
+
+The next was cleaning the Parkrunner column, and anonymising the data. The parkrunner column was very untidy, being incredibly verbose and hard to read, while still containing useful data, such as milestone data. It also contained the names of each runner, which is a massive privacy risk. By separating the variables into different columns, anonymising the data using a Caesar Cipher, we could ensure that the all the relevant data remained, and the name's of each runner remained obscured.
+
+The final step was to clean for the time variables. There are three variables that were stored in Time, that being the time to complete a race, the personal best time set by a runner for that location, and whether or not that was their first time running that parkrun. By separating the columns, we could obtain information regarding repeat runners, how many runners were first timers, etc. 
+
+By taking these steps, we were able to produce a tidy dataset which contained all of the relevant data for answering the key questions set by Puma.
+
+\newpage
+
+## Key Questions
+
+### Question one 
+
+Question: Which Parkrun provides the best marketing opportunity with the largest number of people ?
+
+To find out which Parkrun is best for Puma’s marketing, I compared how many people take part in each location.  
+I used the cleaned data to count total number of runs (including repeats), and number of unique runners, each person only counted once, excluding unknown IDs.  
+
+I then created two bar charts to show these results — one for **unique runners** and another for **total finishes**.  
+The first chart helps show which Parkrun has the biggest overall audience, while the second shows which Parkrun is the most active.  
+This comparison helps find the place where advertising would reach the most people.
+
+### Question 2  
+Question: Do new people come each week or is it always the same people?
+
+I wanted to see if Parkrun keeps getting new runners each week or if it’s mostly the same people coming back.  
+I looked at each runner’s `name_id` and marked them as **new** the first time they appeared, and as **returning** if they had joined before.  
+
+Then I calculated the total number of runners and how many were new in each week, and worked out the percentage of new runners.  
+I made two plots — one showing how many new runners joined each week and another showing the percentage of new participants.  
+This helped me understand if Parkrun keeps attracting new people or mainly has a stable, repeating group.
+
+### Question 3
+
+Question: Do people move between Parkruns? Does this mean if you advertise at fewer places you eventually
+see people from other locations?
+
+In order to answer this question, I went about determining how many locations different runners have been to. I did this by grouping the data by `name_id`, and then summarising by the number of distinct Parkruns that runner attended `summarise(num_parkruns = n_distinct(parkrun))` to create a `location_counts` data frame.
+
+On top of this, another summary was made `location_summary`, which was used to produce Table 4. This summarises the total unique runners, the runners who have gone to different Parkrun locations (Mixed runners), and a percentage of mixed runners across the dataset.
+
+Results showed that 26.6% of runners have gone to another location. A bar chart could then be used to show the number of runners going to different numbers of Parkruns, for a less technical visualisation of this data.
+
+### Question 4
+Question: If Puma want to target elite runners, where should they focus their efforts?
+
+In order to identify elite runner, I used 'Age grade' variables to distinguish an elite runner and a normal runner. I put a threshold of 70 to filter elite runners, every unique name id that has age grad above 70 would consider as an elite runner.
+
+Then I calculate number and percentage of elite runners by location and gender for comparison.
+
+### Question 5
+Question: Puma believe more consistent runners have better potential as customers, how many runners are consistent and is consistency different across locations?
+
+In order to identify consistent runner, I used 'weeks_participated' variable combine with unique name id in each parkrun. I considered the frequency as follows:
+- A highly consistent runner who attends 5+ weeks,
+- A moderately consistent runner who attends 3-4 weeks,
+- An occasional runner who attends 1-2 weeks
+
+Then I calculated the sum of consistent runners and the percentage of consistent runner in each parkrunn to compare with each other.
+
+### Question 6
+
+Question: Does the distance between Parkrun locations predict the amount of mixing of people between those
+locations?
+
+In order to answer this question, I first obtained the geographical coordinates for each Parkrun. Using the `sf` and `leaflet` libraries, I could then obtain the distances between each location (straight line, point-to-point), as a matrix, which I converted to a data frame.
+
+I then created a new df mixing_pairs, which connected every Parkrun to every other Parkrun in pairwise relationships. Using this, and a `runner_locations` summary to determine the locations each runner has been to, I obtained a mixing score; the number of runners that have been to both locations in a pair. Using the mixing score, and joining it with the distance data frame to obtain a data frame with a distance and a score for each pair of Parkruns (`distance_mixing`). I could then create a predictive model, using `glm()` with `family = Gamma`.
+
+## Limitations of the Study
+
+Audience Identification (Q1):Some runners were listed as “UNK” or had no name ID, so I couldn’t tell if they were new or repeat participants.That means the number of unique runners might be a bit lower than the real value.Also, if a person’s name ID was entered differently across weeks, they could have been counted twice by mistake.
+
+New and Returning Runners (Q2):This question depends a lot on having the same name ID every week.If someone’s ID was missing or typed differently, the code would treat them as a new runner even if they’d come before.The data also only covers a short period of 11 weeks, so it might not show the long-term pattern of new people joining or old runners returning.
+
+Marketing Knowledge (Q3): My knowledge of marketing is very limited, and the research I did, while very informative, does not give me full confidence in a correct conclusion
+
+Elite runner features (Q4): To truly identify an elite runner, age grade is not enough. There are some more important features like running pace, competition's weather condition,... which the data provided was lacking.
+
+Distances (Q6): The issue with calculating if distance predicts mixing between two Parkruns, is an issue of realism. The distances I measured were just straight lines from Parkrun to Parkrun. As such, the possible mixing scores are not reflective of real world travel distances, such as road layouts, traffic, etc. As such, two Parkruns may be very far from each other, but if it takes very little time to get between them, there may be more mixing present. 
+
+Non-Normal Data (Q6): The distance_mixing data frame was not Normal data, and was heavily right-skewed. As such, I could not fit a typical linear model, and had to use a Gamma distribution, which produced the best results in terms of residuals and QQ-plot. However, by most measures, these plots would still be concerning, but the correlation between distance and mixing score is still clear.
+
+```{r normality prep, echo=FALSE}
+# For each runner, count the number of parkruns they have been to
+location_counts <- parkrun_df %>%
+  group_by(name_id) %>%
+  filter(name_id != "UNK") %>% # Remove unknown runners
+  summarise(num_parkruns = n_distinct(parkrun)) %>%
+  arrange(desc(num_parkruns))
+
+# Summarise the proportion of people who having gone to different parkruns
+location_summary <- location_counts %>%
+  summarise(
+    total_runners = n(),
+    multi_parkrun_runners = sum(num_parkruns > 1),
+    percent_multi = 100 * mean(num_parkruns > 1)
+  )
+
+# Create a data frame to store coordinates of each Parkrun
+# Uses Google Maps coordinates
+parkrun_coords <- data.frame(
+  parkrun_lbl = c("Broadpark", # Used for labelling parkruns on maps
+           "Foster", 
+           "Hagley Park", 
+           "Halswell Quarry", 
+           "Pegasus", 
+           "Riverlution", 
+           "Scarborough"),
+  parkrun_raw = c("broadpark", # Used for joining with other data frames
+           "foster", 
+           "hagley", 
+           "halswellquarry", 
+           "pegasus", 
+           "riverlution", 
+           "scarborough"),
+  lat = c(-43.48407765955925, # Latitude coordinates
+          -43.60662280393161, 
+          -43.528411796120665, 
+          -43.59913104444619,
+          -43.31040735466971,
+          -43.52080699964801,
+          -43.57286627879577),
+  lng = c(172.72225771008866, # Longitude coordinates
+          172.387170265916247, 
+          172.622954938927, 
+          172.5800077082442, 
+          172.69504267525784, 
+          172.65959254077748, 
+          172.76978873320155)
+)
+
+# Convert data frame to sf object
+# Changes coordinate system to ensure measurements are in metres
+parkrun_coords_sf <- st_as_sf(parkrun_coords,
+                              coords = c("lng", "lat"),
+                              crs = 4326) %>%
+  st_transform(crs = 2193)   # NZTM (New Zealand Transverse Mercator)
+
+# Create a distance matrix that shows distances between each pair of parkruns
+parkrun_dist <- st_distance(parkrun_coords_sf)
+
+# Change row and column names to be parkrun locations
+rownames(parkrun_dist) <- parkrun_coords$parkrun_raw
+colnames(parkrun_dist) <- parkrun_coords$parkrun_raw
+
+# Convert distance matrix back to a data frame, such that it can be joined
+# with a mixing score data frame
+distance_df <- as.data.frame(as.table(as.matrix(parkrun_dist))) %>%
+  rename(from = Var1, to = Var2, distance_m = Freq) %>%
+  mutate(distance_km = as.numeric(distance_m/1000))
+
+# Filter distance_df for irrelevant or repeat data (A to A or A to B and B to A)
+# Does this by determining the pair of locations alphabetically, then only selecting
+# distinct pairs. This is done for joining purposes
+distance_df <- distance_df %>%
+  filter(from != to) %>%
+  mutate(pair = map2_chr(from, to, ~ paste(sort(c(.x, .y)), collapse = " - "))) %>%
+  distinct(pair, .keep_all = TRUE)
+
+# For each runner who has attended multiple parkruns,
+# summarise which parkruns they attended.
+# Uses suppressMessages to silence join output
+runner_locations <- suppressMessages(left_join(parkrun_df, location_counts)) %>%
+  group_by(name_id) %>%
+  filter(num_parkruns > 1) %>%
+  summarise(parkruns = paste0(unique(parkrun), collapse=", "))
+
+# Create a data frame that shows the pairs of locations a runner connects
+# Used to determine how much mixing occurs between these locations
+mixing_pairs <- runner_locations %>%
+  mutate(parkrun_list = strsplit(parkruns, ",\\s*")) %>%
+  unnest(parkrun_list) %>%
+  group_by(name_id) %>%
+  reframe(
+    pair = combn(sort(unique(parkrun_list)), 2, FUN = paste, collapse = " - ", simplify = TRUE)
+    ) %>%
+  unnest(pair)
+
+# Compute a mixing score for each pair of locations
+mixing_score <- mixing_pairs %>%
+  count(pair, name = "mixing_score")
+
+# Join mixing_score and distance_df to get an analysable data frame
+# Select relevant data (pair, distance in km, and mixing score)
+# Uses suppressMessages to remove any output
+distance_mixing <- suppressMessages(left_join(distance_df, mixing_score)) %>%
+  select(pair, distance_km, mixing_score)
+```
+
+```{r normality plots, eval=FALSE}
+# Create a generalized linear model using a Gamma distribution
+# Gamma distributions work for skewed data, and produces more acceptable results
+distance_mixing_model <- glm(mixing_score ~ distance_km, data = distance_mixing, family = Gamma)
+
+# Plots to check Normality of linear model
+plot(distance_mixing_model, which = 1)
+plot(distance_mixing_model, which = 2)
+plot(distance_mixing_model, which = 4)
+```
+
+## Future Improvements and Development
+
+**Question 1:**  
+If I had more data, I’d look at extra factors like location size, weather, and population to see what makes some Parkruns attract more people than others.  
+It would also help to include demographic data so Puma could target the right type of customers.  
+Creating an interactive dashboard would make it easier to compare locations visually.
+
+**Question 2:**  
+To understand participation better, a longer time period would be useful to see long-term trends instead of just 11 weeks.  
+Making sure every runner has a consistent ID would also make the results more reliable.  
+With more data, I could even build a simple model to predict when new runners are most likely to appear.
+
+**Imputation:**
+Imputation was a very difficult challenge to tackle. This was largely due to the fact that it was very difficult to determine a large number of variables based on the data provided. While there were some obvious options, such as imputing Time through the use of Nearest Neighbour Imputation, none of the key questions we set out to answer really depended heavily on Time. But then comes the issue of not being able to tell unknown runners apart from each other, as there were very few identifying features within those unknown observations. As such, we generally stuck to using only the Complete Cases of the dataset, those being the observations without an "UNK" identifier. Due to this, we likely lost a significant amount of statistical power. 
+
+
+
