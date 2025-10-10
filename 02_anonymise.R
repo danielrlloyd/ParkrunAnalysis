@@ -73,7 +73,7 @@ parkrun_df_cleaned <- parkrun_df %>%
   )
 
 # remove column 'parkrunner' and 'name' and 'week_num'
-parkrun_df_cleaned <- parkrun_df_cleaned %>% select(-parkrunner, -name, -week_num)
+parkrun_df_cleaned <- parkrun_df_cleaned %>% select(-parkrunner, -name, -Time)
 
 
 
