@@ -24,7 +24,7 @@ parkrun_df <- read_csv("clean-data.csv.gz")
 
 # Overview
 
-In this study, we analysed 11 weeks of Parkrun events across 7 locations in and around Christchurch/Otautahi. This study was commissioned by Puma Inc. for the purpose of determining marketing potential in these Parkruns, and developing and optimal marketing strategy. This study was conducted by Bad Ass Analytics Ltd. This document covers the technical aspects of our analysis, such as our assumptions of the data, how we went about answering the key questions, and 
+In this study, we analysed 11 weeks of Parkrun events across 7 locations in and around Christchurch/Otautahi. This study was commissioned by Puma Inc. for the purpose of determining marketing potential in these Parkruns, and developing and optimal marketing strategy. This study was conducted by Bad Ass Analytics Ltd. This document covers the technical aspects of our analysis, such as our assumptions of the data, how we went about answering the key questions, and the limitations/future improvements of our pipeline.
 
 # Contributions
 
